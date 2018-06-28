@@ -1,8 +1,10 @@
 # CATH / SWISS-MODEL API
 
-This repo is here to store documents relating to the CATH / SWISS-MODEL (ELIXIR Implementation Study).
+This repository is here to help development relating to the CATH / SWISS-MODEL (2018 ELIXIR Implementation Study).
+
+General layout:
 
 ```
-├── api      -- API specification
-└── docs     -- project admin
+├── api      API specification
+└── docs     Project admin
 ```
