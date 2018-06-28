@@ -1,0 +1,183 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "CATH API for the CATH/SWISS-MODEL ELIXIR Implementation Study 2018",
+    "version": "0.0.1",
+    "title": "CATH API",
+    "contact": {
+      "email": "i.sillitoe@ucl.ac.uk"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "basePath": "/v1",
+  "tags": [
+    {
+      "name": "public",
+      "description": "Public methods are available without authentication",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://api.cathdb.info/"
+      }
+    },
+    {
+      "name": "private",
+      "description": "Secure methods require authentication",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://api.cathdb.info/"
+      }
+    },
+    {
+      "name": "auth",
+      "description": "Authenticate connection to provide access to private methods"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "tags": [ "public" ],
+        "summary": "Provide the current status of this API (eg heartbeat)",
+        "operationId": "status",
+        "produces": [ "application/json" ],
+        "responses": {
+          "200": {
+            "description": "Successfully returned API status"
+          },
+          "default": {
+            "description": "Unexpected error"
+          }
+        }
+      }
+    },
+    "/search/3dtemplate": {
+      "post": {
+        "tags": [ "public" ],
+        "summary": "Submit a query protein sequence to identify most appropriate structural CATH domain to use for 3D modelling",
+        "operationId": "select3dTemplateSubmit",
+        "description": "",
+        "x-no-auth": 1,
+        "x-mojo-to": "submit_sequence_search",
+        "parameters": [
+          {
+            "in": "formData",
+            "name": "sequence",
+            "type": "file",
+            "description": "PDB file for structural prediction",
+            "required": true
+          },
+          {
+            "in": "formData",
+            "name": "cath_version",
+            "description": "CATH Version (e.g '4.2')",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully submitted a sequence to be searched against CATH domains",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "task_id"
+                  ],
+                  "properties": {
+                    "task_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "There was a problem with the request, please check the input data"
+          },
+          "default": {
+            "description": "Unexpected error"
+          }
+        }
+      }
+    },
+    "/search/3dtemplate/task/{task_id}": {
+      "get": {
+        "tags": [ "public" ],
+        "summary": "Get the status of a task",
+        "operationId": "select3dTemplateCheck",
+        "description": "",
+        "x-no-auth": 1,
+        "x-mojo-to": "check_sequence_search",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "type": "string",
+            "description": "Task ID",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "400": {
+            "description": "There was a problem with the request, please check the input data"
+          },
+          "404": {
+            "description": "No information can be found on this task id"
+          },
+          "default": {
+            "description": "Unexpected error"
+          }
+        }
+      }
+    },
+    "/search/3dtemplate/task/{task_id}/results": {
+      "get": {
+        "tags": [ "public" ],
+        "summary": "Get the results of a task",
+        "operationId": "select3dTemplateResults",
+        "description": "",
+        "x-no-auth": 1,
+        "x-mojo-to": "get_sequence_search_results",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "type": "string",
+            "description": "Task ID",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "400": {
+            "description": "There was a problem with the request, please check the input data"
+          },
+          "404": {
+            "description": "No information can be found on this task id"
+          },
+          "default": {
+            "description": "Unexpected error"
+          }
+        }
+      }
+    }
+  }
+}
