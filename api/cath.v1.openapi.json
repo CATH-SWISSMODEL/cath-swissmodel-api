@@ -81,22 +81,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully submitted a sequence to be searched against CATH domains",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "task_id"
-                  ],
-                  "properties": {
-                    "task_id": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Successfully submitted a sequence to be searched against CATH domains"
           },
           "400": {
             "description": "There was a problem with the request, please check the input data"
@@ -126,10 +111,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {}
-            }
+            "description": "Returning status of this task"
           },
           "400": {
             "description": "There was a problem with the request, please check the input data"
@@ -162,10 +144,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {}
-            }
+            "description": "Returning results from 3D template search"
           },
           "400": {
             "description": "There was a problem with the request, please check the input data"
