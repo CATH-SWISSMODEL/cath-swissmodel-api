@@ -2,6 +2,7 @@
 
 cd perl5
 
-cpanm --quiet --installdeps --notest .
+cpanm --quiet --installdeps .
 
-prove -l -v t
+prove -l -v t/
+
