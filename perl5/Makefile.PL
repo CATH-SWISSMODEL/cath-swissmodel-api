@@ -17,7 +17,7 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM => {
-        'local::lib'                   => 0,
+        'local::lib'                   => '2.00',
         'Test::More'                   => '0.88',
         'Mojolicious'                  => '7.82',
         'Mojolicious::Plugin::OpenAPI' => '1.30',
