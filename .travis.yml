@@ -1,2 +1,5 @@
-install: ./install.sh
-script: ./build.sh
+language: perl
+perl:
+  - "5.20"
+before_install: cd perl5
+before_script: cd perl5
