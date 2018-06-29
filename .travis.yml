@@ -1,1 +1,2 @@
+install: ./install.sh
 script: ./build.sh
