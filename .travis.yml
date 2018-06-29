@@ -1,5 +1,4 @@
 language: perl
 perl:
-  - "5.20"
+  - "5.24"
 before_install: cd perl5
-before_script: cd perl5
