@@ -2,14 +2,14 @@ from django.db import models
 import hashlib
 
 # constants
-STATUS_INITIALISED="initialised"
-STATUS_QUEUED="queued"
-STATUS_RUNNING="running"
-STATUS_ERROR="error"
-STATUS_SUCCESS="success"
-STATUS_UNKNOWN="unknown"
+STATUS_INITIALISED="Initialised"
+STATUS_QUEUEING="Queueing"
+STATUS_RUNNING="Running"
+STATUS_COMPLETED="Completed"
+STATUS_ERROR="Error"
+STATUS_UNKNOWN="Unknown"
 STATUS_CHOICES=( (st, st) for st in 
-    (STATUS_UNKNOWN, STATUS_QUEUED, STATUS_RUNNING, STATUS_ERROR, STATUS_SUCCESS) )
+    (STATUS_INITIALISED, STATUS_QUEUEING, STATUS_RUNNING, STATUS_COMPLETED, STATUS_ERROR, ) )
 
 # Create your models here.
 
