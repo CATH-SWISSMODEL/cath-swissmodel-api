@@ -1,0 +1,192 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "CATH Modelling API",
+      "description": "CATH / SWISS-MODEL ELIXIR Implementation Study",
+      "termsOfService": "https://www.google.com/policies/terms/",
+      "contact": {
+        "email": "i.sillitoe@ucl.ac.uk"
+      },
+      "license": {
+        "name": "BSD License"
+      },
+      "version": "v2"
+    },
+    "host": "localhost:8000",
+    "schemes": [
+      "http"
+    ],
+    "basePath": "/",
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "securityDefinitions": {
+      "basic": {
+        "type": "basic"
+      }
+    },
+    "security": [
+      {
+        "basic": []
+      }
+    ],
+    "paths": {
+      "/select-template/": {
+        "get": {
+          "operationId": "select-template_list",
+          "description": "This class defines the create behavior of our rest api.",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/SelectTemplateQuery"
+                }
+              }
+            }
+          },
+          "tags": [
+            "select-template"
+          ]
+        },
+        "post": {
+          "operationId": "select-template_create",
+          "description": "This class defines the create behavior of our rest api.",
+          "parameters": [
+            {
+              "name": "data",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/SelectTemplateQuery"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "",
+              "schema": {
+                "$ref": "#/definitions/SelectTemplateQuery"
+              }
+            }
+          },
+          "tags": [
+            "select-template"
+          ]
+        },
+        "parameters": []
+      },
+      "/select-template/{id}/": {
+        "get": {
+          "operationId": "select-template_read",
+          "description": "This class handles the http GET and DELETE requests.",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "",
+              "schema": {
+                "$ref": "#/definitions/SelectTemplateResults"
+              }
+            }
+          },
+          "tags": [
+            "select-template"
+          ]
+        },
+        "delete": {
+          "operationId": "select-template_delete",
+          "description": "This class handles the http GET and DELETE requests.",
+          "parameters": [],
+          "responses": {
+            "204": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "select-template"
+          ]
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A unique integer value identifying this select template task.",
+            "required": true,
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    "definitions": {
+      "SelectTemplateQuery": {
+        "required": [
+          "fasta"
+        ],
+        "type": "object",
+        "properties": {
+          "fasta": {
+            "title": "Fasta",
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          },
+          "task_id": {
+            "title": "Task id",
+            "type": "string",
+            "readOnly": true
+          }
+        }
+      },
+      "SelectTemplateResults": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "title": "Task id",
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "title": "Status",
+            "type": "string",
+            "enum": [
+              "Initialised",
+              "Queueing",
+              "Running",
+              "Completed",
+              "Error"
+            ],
+            "readOnly": true
+          },
+          "message": {
+            "title": "Message",
+            "type": "string",
+            "readOnly": true,
+            "minLength": 1
+          },
+          "date_created": {
+            "title": "Date created",
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "date_modified": {
+            "title": "Date modified",
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "results": {
+            "title": "Results",
+            "type": "string",
+            "readOnly": true,
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
