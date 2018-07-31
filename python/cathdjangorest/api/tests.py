@@ -24,7 +24,7 @@ class ModelTestCase(TestCase):
         self.assertNotEqual(old_count, new_count)
 
 class ViewTestCase(TestCase):
-    """Test suite for the api views."""
+    """Test suite for the API views."""
 
     def setUp(self):
         """Define the test client and other test variables."""

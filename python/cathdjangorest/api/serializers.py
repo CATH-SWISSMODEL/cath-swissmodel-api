@@ -4,7 +4,7 @@ from .models import SelectTemplateTask
 from rest_framework import serializers
 
 class SelectTemplateQuerySerializer(serializers.ModelSerializer):
-    """Serializer to map the Model instance into JSON format"""
+    """Serializer to map the template select query into JSON format"""
 
     class Meta:
         """Meta class to map serializer's fields with the model fields."""
@@ -13,7 +13,7 @@ class SelectTemplateQuerySerializer(serializers.ModelSerializer):
         read_only_fields = ('status', 'message', 'date_created', 'date_modified', 'results')
 
 class SelectTemplateResultsSerializer(serializers.ModelSerializer):
-    """Serializer to map the Model instance into JSON format"""
+    """Serializer to map the template select results into JSON format"""
 
     class Meta:
         """Meta class to map serializer's fields with the model fields."""

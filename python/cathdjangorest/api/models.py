@@ -14,7 +14,8 @@ STATUS_CHOICES=( (st, st) for st in
 # Create your models here.
 
 class SelectTemplateTask(models.Model):
-    """This class represents the tasklist model."""
+    """This class represents the model used for selecting the best structural template 
+    for a protein sequence from CATH."""
     fasta = models.CharField(max_length=2000, blank=False, unique=False)
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_INITIALISED)
