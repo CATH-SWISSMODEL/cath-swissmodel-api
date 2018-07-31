@@ -18,7 +18,7 @@ class SelectTemplateTask(models.Model):
     for a protein sequence from CATH."""
     fasta = models.CharField(max_length=2000, blank=False, unique=False)
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_INITIALISED)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_INITIALISED)
     message = models.CharField(max_length=150)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -35,6 +35,6 @@ class SelectTemplateTask(models.Model):
     task_id = property( get_unique_key )
 
     def __str__(self):
-        """Return a human readable representation of this instance."""
+        """Return a human readable representation of the select template task instance."""
         return "[{}] status:{}, started:{}, last_updated:{}".format( 
             self.task_id, self.status, self.date_created, self.date_modified )
