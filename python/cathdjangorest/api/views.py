@@ -7,7 +7,8 @@ from .serializers import SelectTemplateQuerySerializer, SelectTemplateResultsSer
 from .models import SelectTemplateTask
 
 class SelectTemplateTaskCreateView(generics.ListCreateAPIView):
-    """This class defines the create behavior of our rest api."""
+    """Search CATH with a protein sequence to identify the best template structure 
+    and alignment to use for 3D modelling."""
     queryset = SelectTemplateTask.objects.all()
     serializer_class = SelectTemplateQuerySerializer
 
@@ -16,7 +17,7 @@ class SelectTemplateTaskCreateView(generics.ListCreateAPIView):
         serializer.save()
 
 class SelectTemplateTaskDetailsView(generics.RetrieveDestroyAPIView):
-    """This class handles the http GET and DELETE requests."""
+    """Get status and results for previously submitted template search tasks."""
 
     queryset = SelectTemplateTask.objects.all()
     serializer_class = SelectTemplateResultsSerializer
