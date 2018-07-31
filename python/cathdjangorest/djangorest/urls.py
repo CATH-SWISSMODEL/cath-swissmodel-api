@@ -21,9 +21,9 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Django REST API Test",
+        title="CATH Modelling API",
         default_version='v2',
-        description="Test description",
+        description="CATH / SWISS-MODEL ELIXIR Implementation Study",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="i.sillitoe@ucl.ac.uk"),
         license=openapi.License(name="BSD License"),
