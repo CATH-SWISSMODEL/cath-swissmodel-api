@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 # https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 
@@ -111,3 +112,11 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+=======
+perl5/MYMETA.json
+perl5/MYMETA.yml
+perl5/Makefile
+__pycache__/
+venv/
+*.pyc
+>>>>>>> 535ef027ec058511375df5deadd93246af52e219
