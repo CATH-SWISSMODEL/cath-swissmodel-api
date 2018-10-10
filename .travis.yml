@@ -1,4 +1,7 @@
-language: perl
-perl:
-  - "5.24"
-before_install: cd perl5
+language: python
+python:
+  - "3.6"
+install:
+  - "pip install -r python/requirements.txt"
+script:
+  - "pytest python/tests"
