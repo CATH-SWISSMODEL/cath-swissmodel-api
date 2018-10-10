@@ -24,7 +24,6 @@ class TestApi2(testutils.TestCase):
     def setUp(self):
 
         self.base_url = 'https://beta.swissmodel.expasy.org'
-        self.csrf_token = 'iyZSc6lnEejIfUcVCDyRv9QvbdjBbSvrL3YQ7XcmYc8AjC75AVv4tGdwuOTOx8GK'
 
         try:
             self.sm_user = os.environ['SWISSMODEL_USER'] 
