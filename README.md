@@ -7,10 +7,10 @@ This repository is here to help development relating to the CATH / SWISS-MODEL A
 General layout:
 
 ```
-├── spec     latest OpenAPI specification docs for each API (1-4)
-├── cathapi  Backend code for CATH API (1, 3, 4) [Python/Django]
+├── api      API specification documents (OpenAPI)
+├── cathapi  Code for backend CATH API
 ├── docs     general project admin
-└── perl5    Tests and backend API (latter now deprecated in favour of Python/Django)
+└── python   Tests
 ```
 
 The project has four individual APIs, each with its own set of operations / endpoints. The table below provides a general summary, more details can be found in the admin directory.
@@ -19,19 +19,27 @@ The project has four individual APIs, each with its own set of operations / endp
 
 **API 1: Get3DTemplate (UCL)** -- For a given query protein sequence, identify the most appropriate known structural domain to use for the 3D structural modelling.
 
+| Input | Output |
+|---|---|
+| protein sequence (FASTA) | <ul><li>template structure (PDB ID)</li><li>alignment (FASTA)</li></ul> |
+
 **API 2: Get3DModel (SWISSMODEL)** -- For a given sequence, alignment and template identify the most appropriate known structural domain to use for the 3D structural modelling.
+
+| Input | Output |
+|---|---|
+| <ul><li>protein sequence (FASTA)</li><li>template structure (PDB ID)</li><li> alignment (FASTA)</li></ul> | 3D coords (PDB) |
 
 **API 3: GetFunData (CATH)** -- Provide access to functional terms and functional site data for the respective functional families (to provide additional annotations for query sequences).
 
+| Input | Output |
+|---|---|
+| protein sequence (FASTA) | JSON |
+
 **API 4: GetPutativeModelSequences (CATH)** -- Provide information on the number of potential models that can be built by a query structure (used by PDBe).
 
-|   | Name | Resource | Input | Output |
-|---|---|---|---|---|
-| 1 | Get3DTemplate | CATH | protein sequence (FASTA) | <ul><li>template structure (PDB ID)</li><li>alignment (FASTA)</li></ul> |
-| 2 | Get3DModel | SWISS-MODEL | <ul><li>protein sequence (FASTA)</li><li>template structure (PDB ID)</li><li> alignment (FASTA)</li></ul> | 3D coords (PDB) |
-| 3 | GetFunData | CATH | protein sequence (FASTA) | JSON 
-| 4 | GetPutativeModelSequences | CATH | protein sequence (FASTA) | UniProtKB accessions |
-
+| Input | Output |
+|---|---|
+| protein sequence (FASTA) | UniProtKB accessions |
 
 ### Getting started
 
