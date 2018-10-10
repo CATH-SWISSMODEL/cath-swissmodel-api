@@ -1,6 +1,7 @@
 
 from django.test import TestCase
 from django.urls import reverse
+from django.db import IntegrityError
 from .models import SelectTemplateTask
 
 from rest_framework.test import APIClient
@@ -14,7 +15,15 @@ class ModelTestCase(TestCase):
     def setUp(self):
         """Define the test client and other test variables."""
         self.template_query_fasta = ">query\nAPKGAPKGAPKGAPKGAPKGAKPGAKGKPAKGPAKGPAKGAGPKAGPKAGPKAPGKAAGPK\n"
-        self.template_task = SelectTemplateTask(fasta=self.template_query_fasta)
+        self.template_task_id = 'd5c2e62487a27c5c5250912362c75edd'
+        self.template_task = SelectTemplateTask(fasta=self.template_query_fasta, task_id=self.template_task_id)
+
+    def test_model_can_save_twice(self):
+        try:
+            self.template_task.save()
+            self.template_task.save()
+        except Exception as e:
+            self.fail("saving template task twice raised exception: " + e)
 
     def test_model_can_create_a_task(self):
         """Test the tasklist model can create a task."""
@@ -35,7 +44,7 @@ class ViewTestCase(TestCase):
             self.template_task_data,
             format="json"
         )
-
+    
     def test_api_can_create_a_task(self):
         """Test the api has task creation capability"""
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
