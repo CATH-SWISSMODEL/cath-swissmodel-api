@@ -62,21 +62,14 @@
         "operationId": "select3dTemplateSubmit",
         "description": "",
         "x-no-auth": 1,
-        "x-mojo-to": "submit_sequence_search",
+        "x-mojo-to": "search#submit_sequence_search",
         "parameters": [
           {
-            "in": "formData",
             "name": "sequence",
-            "type": "file",
-            "description": "PDB file for structural prediction",
-            "required": true
-          },
-          {
             "in": "formData",
-            "name": "cath_version",
-            "description": "CATH Version (e.g '4.2')",
-            "type": "string",
-            "required": true
+            "description": "Protein sequence in FASTA format",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -99,14 +92,14 @@
         "operationId": "select3dTemplateCheck",
         "description": "",
         "x-no-auth": 1,
-        "x-mojo-to": "check_sequence_search",
+        "x-mojo-to": "search#check_sequence_search",
         "parameters": [
           {
-            "in": "path",
             "name": "task_id",
-            "type": "string",
+            "in": "path",
             "description": "Task ID",
-            "required": true
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -132,14 +125,14 @@
         "operationId": "select3dTemplateResults",
         "description": "",
         "x-no-auth": 1,
-        "x-mojo-to": "get_sequence_search_results",
+        "x-mojo-to": "search#get_sequence_search_results",
         "parameters": [
           {
-            "in": "path",
             "name": "task_id",
-            "type": "string",
+            "in": "path",
             "description": "Task ID",
-            "required": true
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {

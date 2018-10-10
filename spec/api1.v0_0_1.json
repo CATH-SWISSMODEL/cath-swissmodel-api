@@ -1,0 +1,192 @@
+{
+   "info" : {
+      "version" : "v0.0.1",
+      "contact" : {
+         "email" : "i.sillitoe@ucl.ac.uk"
+      },
+      "termsOfService" : "https://www.google.com/policies/terms/",
+      "title" : "CATH-SWISSMODEL API 1",
+      "license" : {
+         "name" : "BSD License"
+      },
+      "description" : "Select a template structure on which to model the 3D coordinates of a given protein sequence."
+   },
+   "securityDefinitions" : {
+      "basic" : {
+         "type" : "basic"
+      }
+   },
+   "swagger" : "2.0",
+   "produces" : [
+      "application/json"
+   ],
+   "consumes" : [
+      "application/json"
+   ],
+   "definitions" : {
+      "SelectTemplateQuery" : {
+         "required" : [
+            "fasta"
+         ],
+         "type" : "object",
+         "properties" : {
+            "fasta" : {
+               "minLength" : 1,
+               "maxLength" : 2000,
+               "type" : "string",
+               "title" : "Fasta"
+            },
+            "task_id" : {
+               "type" : "string",
+               "title" : "Task id",
+               "readOnly" : true
+            }
+         }
+      },
+      "SelectTemplateResults" : {
+         "type" : "object",
+         "properties" : {
+            "status" : {
+               "enum" : [
+                  "unknown",
+                  "queued",
+                  "running",
+                  "error",
+                  "success"
+               ],
+               "type" : "string",
+               "title" : "Status",
+               "readOnly" : true
+            },
+            "date_modified" : {
+               "format" : "date-time",
+               "type" : "string",
+               "title" : "Date modified",
+               "readOnly" : true
+            },
+            "date_created" : {
+               "format" : "date-time",
+               "type" : "string",
+               "title" : "Date created",
+               "readOnly" : true
+            },
+            "results" : {
+               "minLength" : 1,
+               "type" : "string",
+               "title" : "Results",
+               "readOnly" : true
+            },
+            "message" : {
+               "minLength" : 1,
+               "type" : "string",
+               "title" : "Message",
+               "readOnly" : true
+            },
+            "task_id" : {
+               "type" : "string",
+               "title" : "Task id",
+               "readOnly" : true
+            }
+         }
+      }
+   },
+   "paths" : {
+      "/select-template/" : {
+         "parameters" : [],
+         "post" : {
+            "parameters" : [
+               {
+                  "required" : true,
+                  "in" : "body",
+                  "name" : "data",
+                  "schema" : {
+                     "$ref" : "#/definitions/SelectTemplateQuery"
+                  }
+               }
+            ],
+            "operationId" : "select-template_create",
+            "responses" : {
+               "201" : {
+                  "schema" : {
+                     "$ref" : "#/definitions/SelectTemplateQuery"
+                  },
+                  "description" : ""
+               }
+            },
+            "description" : "This class defines the create behavior of our rest api.",
+            "tags" : [
+               "select-template"
+            ]
+         },
+         "get" : {
+            "parameters" : [],
+            "operationId" : "select-template_list",
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/SelectTemplateQuery"
+                     }
+                  },
+                  "description" : ""
+               }
+            },
+            "description" : "This class defines the create behavior of our rest api.",
+            "tags" : [
+               "select-template"
+            ]
+         }
+      },
+      "/select-template/{id}/" : {
+         "parameters" : [
+            {
+               "required" : true,
+               "in" : "path",
+               "name" : "id",
+               "type" : "integer",
+               "description" : "A unique integer value identifying this select template task."
+            }
+         ],
+         "delete" : {
+            "parameters" : [],
+            "operationId" : "select-template_delete",
+            "responses" : {
+               "204" : {
+                  "description" : ""
+               }
+            },
+            "description" : "This class handles the http GET and DELETE requests.",
+            "tags" : [
+               "select-template"
+            ]
+         },
+         "get" : {
+            "parameters" : [],
+            "operationId" : "select-template_read",
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "$ref" : "#/definitions/SelectTemplateResults"
+                  },
+                  "description" : ""
+               }
+            },
+            "description" : "This class handles the http GET and DELETE requests.",
+            "tags" : [
+               "select-template"
+            ]
+         }
+      }
+   },
+   "basePath" : "/",
+   "host" : "localhost:8000",
+   "security" : [
+      {
+         "basic" : []
+      }
+   ],
+   "schemes" : [
+      "http"
+   ]
+}
