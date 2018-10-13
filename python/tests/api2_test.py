@@ -11,7 +11,7 @@ import requests
 from . import testutils
 
 TEST_USER='junk@sillit.com'
-TEST_PASSWORD='EGKEyY'
+TEST_PASSWORD='FJRbnz'
 
 logger = logging.getLogger(__name__)
 
