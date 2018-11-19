@@ -123,3 +123,6 @@ venv/
 sm_auth.txt
 
 cathapi/secret_key.txt
+
+# javascript
+node_modules/
