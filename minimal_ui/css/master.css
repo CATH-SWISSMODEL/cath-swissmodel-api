@@ -1,0 +1,103 @@
+@charset "utf-8";
+/* CSS Document */
+ 
+
+
+@media (min-width: 768px) 
+{
+  .popover { max-width:450px;}
+}
+
+.fancy_box_swap{ display:none; }
+
+#colourOptions label, #ssOptions label{
+  width:100px;
+  font-size: .9em;
+  font-weight:normal;
+}
+#colourOptions input, #ssOptions input{
+  margin-right:2px;
+  }
+
+/* THIS USED TO BE template.css */
+
+.alignTblContainer{
+  position:relative;
+}
+.alignTblContainer td
+{
+  border:0;
+  padding:0;
+}
+
+.alignNameTbl, .alignTbl{ 
+  font-size:.85em;
+  padding-left:2px;
+  margin-bottom:2px; 
+}
+
+.alignNameTbl td, .alignTbl td{
+  font-family:"Courier New", Courier, monospace;  
+  color:#333;
+  line-height:normal; 
+}
+
+.alignNameTbl td  { 
+  text-align:right; 
+  padding-top:2px;
+  padding-bottom:2px;
+  border-right:1px solid #bbb;
+  padding-right:2px; 
+}
+ 
+.alignTbl td { 
+  text-align:left; 
+  padding-top:2px;
+  padding-bottom:2px;
+}
+
+.ss span{   
+  padding-left:1px;
+  padding-right:1px;
+  display:inline-block;
+}
+
+.hydrophobic,
+.polar,
+.small,
+.proline,
+.tiny,
+.aliphatic,
+.aromatic,
+.positive,
+.negative,
+.charged,
+.serThr,
+.large
+{background-color:rgb(20,80,250); background-color:rgba(20,80,250,.4); color:#000; }
+  
+.hoverSelect{ background-color:rgba(100,140,240,.2)!important;  }
+  
+.table .table{ background-color: transparent} 
+  
+.nonVisible { color:rgb(34,34,34); color:rgba(34,34,34,.3); }
+
+.hoverResidue{
+  color:#FFF;
+  background-color: #C44 !important;
+}
+.selectResidue{
+  box-shadow: 
+        0px 4px 0px 0px rgba(255,0,0,.6),
+        0px -4px 0px 0px rgba(255,0,0,.6); 
+}
+
+#pv_status, #ngl_status {
+    font-weight:bold;
+    font:helvetica;
+    font-size:.8em;
+    position:absolute;
+    bottom:0;
+    right:0;
+    z-index: 100;
+}

@@ -1,0 +1,45 @@
+<div id="alignmentOptions" style="display:none;">
+    <form class="alignmentOptions form form-inline">
+    <div>
+        <h4>Alignment Options</h4>
+        <div id="colourOptions" style="padding-top:8px">
+            Colour Scheme <a class="smng-help" href="/docs/help#colour_schemes"></a><br>
+            <label><input type="radio" name="csRadioGroup" id="clustalButton" value="clustal"  />Clustal</label>
+            <label><input type="radio" name="csRadioGroup" id="hydrophobicButton" value="hydrophobic"  />Hydrophobic</label>
+            <label><input type="radio" name="csRadioGroup" id="sizeButton" value="size"  />Size</label>
+            <label><input type="radio" name="csRadioGroup" id="chargedButton" value="charged"  />Charged</label>
+            <label><input type="radio" name="csRadioGroup" id="polarButton" value="polar"  />Polar</label>
+            <label><input type="radio" name="csRadioGroup" id="prolineButton" value="proline"  />Proline</label>
+            <label><input type="radio" name="csRadioGroup" id="serThrButton" value="serThr"  />Ser/Thr</label>
+            <label><input type="radio" name="csRadioGroup" id="cysButton" value="cysteine"  />Cysteine</label>      
+            <label><input type="radio" name="csRadioGroup" id="aliphaticButton" value="aliphatic"  />Aliphatic</label>
+            <label><input type="radio" name="csRadioGroup" id="aromaticButton" value="aromatic"  />Aromatic</label>
+            <label><input type="radio" name="csRadioGroup" id="chainButton" value="chain" checked="checked">Chain</label>
+            <label><input type="radio" name="csRadioGroup" id="uniqueChainButton" value="uniqueChain" >Unique Chain</label>
+            <label><input type="radio" name="csRadioGroup" id="rainbowButton" value="rainbow" >Rainbow</label>
+            <label><input type="radio" name="csRadioGroup" id="secstrucButton" value="secstruc" >Structure</label>
+            <br style="clear:both">
+            <label><input type="radio" name="csRadioGroup" id="noColourButton" value="none"  />No Colour</label> 
+        </div>
+    </div>
+    </form>
+</div>
+<input type="hidden" id="currentAlignmentIndex" value="">
+
+<table cellpadding="0" cellspacing="0" class="alignTblContainer">
+    <tr>
+        <td valign="top">
+            <div class="hidden-print">
+                <a id="options_1" href="#" onclick="return false;" class="glyphicon glyphicon-cog" style="color:#333;opacity:.7;margin-right:2px"></a> 
+            </div>
+        </td>
+        <td valign="top">
+            <table class="alignNameTbl" id="alignNameTbl1" border="0" cellspacing="0" cellpadding="0"></table>
+        </td>
+        <td valign="top">
+            <table class="alignTbl" id="alignTbl1" cols_cookie="smtl_cols" border="0" cellspacing="0" cellpadding="0" ></table>
+            <div id="alignTbl1_features" style="z-index:-1; position: absolute;"></div>
+        </td>
+    </tr>
+</table>
+<div id="offscreen_selection" style="position:absolute; top:-500px;"></div>

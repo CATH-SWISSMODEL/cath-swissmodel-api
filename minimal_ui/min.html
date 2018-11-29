@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-3.3.7.min.css" media="screen,print"/> 
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme-3.3.7.min.css" media="screen,print"/>
+    <link rel="stylesheet" type="text/css" href="css/master.css"  media="all" />
+</head>
+
+<body>
+    <div class="container-fluid" style="margin-top:24px;">
+        <div class="row">
+            <div class="col-sm-7" id="alignmentHolder"></div>
+            <div class="col-sm-5">    
+              <div id="viewerWrapper" style="border: 1px solid #DDD; border-radius: 10px; padding:7px; margin-bottom:4px; height:300px; width:100%">
+                  <div id="pv" style="display:none;width:100%;height:100%;position:relative;">
+                      <div id="pv_status"></div>
+                  </div>
+                  <div id="ngl" style="display:none;width:100%;height:100%;position:relative;">
+                      <div id="ngl_status"></div>
+                  </div>
+              </div>
+              <div id="viewerOptions"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="js/bootstrap-3.3.7.min.js"></script>
+<script src="js/bio-pv.min.js"></script>
+<script src="js/structure.min.js"></script>
+<script src="js/ngl.js"></script>
+<script src="js/structure.min.js"></script>
+<script src="js/alignment.min.js"></script>
+<script src="js/raphael-min.js"></script>
+<script language="javascript">
+
+var structureURL = 'model_01.pdb';
+var structureId = 'My_Model';
+
+var data = {
+      'templateData':{
+            'type':'model-template',
+            'struc_id': structureId,
+            'templates':[{
+                'qname':'5zqy.1.A',
+                'selected':true,
+                'offset': 42, 
+                'chain':'A',
+                'trg_seq':'GPMVSLAQVRGALCGALLGDCMGAEFEGSDAVELPDVLEFVRLLEKE------KKAGTLFYTDDTAMTRAVIQSLIAKPDFDEVDMAKRFAEEYKKEPTRGYGAGVVQVFKKLLSPKYSDVFQPAREQFDGKGSYGNGGAMRVASIALAYPNIQDVIKFARRSAQLTHASPLGYNGAILQALAVHFALQGELKRDTFLEQLIGEMERIEGGEMSASDAGEHDRPNEVKLPFCSRLKKIKEFLASSNVPKADIVDELGHGIAALESVPTAIYSFLHCMESDPDIPDLYNNLQRTIIYSISLGGDTDTIATMAGAIAGAYYGMDQVTPSWKRSCEAIVETEESAVKLYELYCKQLKTP',
+                'tpl_seq':'----SLSRFRGCLAGALLGDCVGSFYEAHDTVDLTSVLRHVQSLEPDPGTPGSERTEALYYTDDTAMARALVQSLLAKEAFDEVDMAHRFAQEYKKDPDRGYGAGVVTVFKKLLNPKCRDVFEPARAQFNGKGSYGNGGAMRVAGISLAYSSVQDVQKFARLSAQLTHASSLGYNGAILQALAVHLALQGESSSEHFLKQLLGHMEDLEGDAQSVLDARELGMEER---PYSSRLKKIGELLDQASVTREEVVSELGNGIAAFESVPTAIYCFLRCMEPDPEIPSAFNSLQRTLIYSISLGGDTDTIATMAGAIAGAYYGMDQVPESWQQSCEGYEETDILAQSLHRVFQK-----',
+                'struc_id':structureId
+                }]  
+            }, 
+
+            'keyseq_chain_name':'A',
+            'cols':70
+      };       
+
+</script>
+</html>
