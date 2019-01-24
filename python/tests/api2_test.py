@@ -35,21 +35,20 @@ class TestApi2(testutils.TestCase):
 
         self.request_data = {
             "target_sequence": "KSCCPTTAARNQYNICRLPGTPRPVCAALSGCKIISGTGCPPGYRH",
-            "template_sequence": "TTCCPSIVARSNFNVCRLPGTPEALCATYTGCIIIPGATCPGDYAN",
+            "template_sequence": "TTCCPSIVARSNFNVCRLPGTPEAICATYTGCIIIPGATCPGDYAN",
             "pdb_id": "1crn",
-            "resnum_start": 0,
-            "label_asym_id": "A",
-            "assembly_id": 1,
+            "template_seqres_offset": 0,
+            "auth_asym_id": "A",
         }
 
         self.expected_response_data = {
             "target_sequence": "KSCCPTTAARNQYNICRLPGTPRPVCAALSGCKIISGTGCPPGYRH",
-            "template_sequence": "TTCCPSIVARSNFNVCRLPGTPEALCATYTGCIIIPGATCPGDYAN",
-            "resnum_start": 0,
+            "template_sequence": "TTCCPSIVARSNFNVCRLPGTPEAICATYTGCIIIPGATCPGDYAN",
+            "template_seqres_offset": 0,
             "pdb_id": "1crn",
-            "label_asym_id": "A",
+            "auth_asym_id": "A",
             "assembly_id": 1,
-            "project_id": 'jHXF9L',
+            "project_id": "xYQeEu",
         }
 
     def test_submit(self):        
@@ -62,6 +61,7 @@ class TestApi2(testutils.TestCase):
 
         headers = self.get_auth_headers()
         r = requests.post(submit_url, data=self.request_data, headers=headers)
+        # print( "response: {}".format(r.text) )
         self.assertEqual(r.status_code, 201, 'submitting alignment with correct auth token should return 201')
         response_data = r.json()
 
