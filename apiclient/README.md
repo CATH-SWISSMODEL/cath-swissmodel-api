@@ -1,0 +1,58 @@
+
+# API Clients
+
+This area contains scripts and libraries to simplify interaction with the CATH / SWISS-MODEL APIs.
+
+### Layout
+
+* `scripts/` -- command line scripts
+* `apiclient/` -- python libraries
+* `example_data/` -- example data
+* `tests/` -- tests
+
+### Examples
+
+**Build a 3D model with the SWISS-MODEL API**
+
+```bash
+$ ./scripts/api2.py --in example_data/A0PJE2__35-316.json --out tmp.pdb
+```
+
+input (ie `example_data/A0PJE2__35-316.json`):
+
+```json
+{
+    "auth_asym_id": "A",
+    "meta": {
+        "dope_score": -0.84426,
+        "funfam_id": "3.40.50.720-ff-290999",
+        "identity": 28.958000000000002,
+        "template.domain_id": "3rd5A00",
+        "template.pdb_start": "2",
+        "template.pdb_stop": "289",
+        "template.seqres_start": 1,
+        "template.seqres_stop": 291
+    },
+    "pdb_id": "3rd5",
+    "target_sequence": "---------E--VQIPGRVFLVTGGNSGI...",
+    "template_seqres_offset": 0,
+    "template_sequence": "GSMTGWTAADLP-SFAQRTVVITGANSGL..."
+}
+```
+
+log:
+
+```
+2019-01-28 19:10:27,047    INFO | DATA:  example_data/A0PJE2__35-316.json
+2019-01-28 19:10:27,047    INFO | MODEL: tmp.pdb
+2019-01-28 19:10:27,047    INFO | Authenticating ... 
+2019-01-28 19:10:27,211    INFO | Loading data from file 'example_data/A0PJE2__35-316.json' ...
+2019-01-28 19:10:27,215    INFO | Submitting data ... 
+2019-01-28 19:10:27,360    INFO | Checking status of project <f2T3CY> ...
+2019-01-28 19:10:27,485    INFO |    status: COMPLETED
+2019-01-28 19:10:27,485    INFO | Retrieving results ... 
+2019-01-28 19:10:27,738    INFO | Writing coordinates to tmp.pdb
+```
+
+Note: add `--verbose` option for more details
+
