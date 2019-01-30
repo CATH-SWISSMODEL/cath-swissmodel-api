@@ -12,7 +12,7 @@ import requests
 
 # local
 from apiclient.models import SubmitAlignment
-from apiclient.cli import ApiArgumentParser
+from apiclient.cli import ApiArgumentParser, ApiConfig
 from apiclient.error import AuthenticationError
 
 DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
@@ -145,7 +145,7 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         return response_data
 
     def set_token(self, *, api_token=None):
-        LOG.debug('Using token {}'.format(api_token))
+        LOG.debug('Using authorization token {}'.format(api_token))
         headers = {'Authorization': 'token {}'.format(api_token)}
         self.headers = headers
 
@@ -169,6 +169,7 @@ class SubmitStatusResultsApiClient(ApiClientBase):
 
         headers = {'Authorization': 'token {}'.format(token_id)}
         self.headers = headers
+        return token_id
 
     def process_authenticate_response(self, res):
         pass
@@ -233,9 +234,12 @@ class SMAlignmentClient():
     """
 
     def __init__(self, *, infile, outfile, api_user=None, api_password=None,
-                 api_token=None, sleep=5, log_level=logging.INFO):
+                 api_token=None, sleep=5, log_level=logging.INFO, config=None):
         self.infile = infile
         self.outfile = outfile
+        if config is None:
+            config = ApiConfig()
+        self.config = config
         self.api_user = api_user
         self.api_password = api_password
         self.api_token = api_token
@@ -247,7 +251,7 @@ class SMAlignmentClient():
     def new_from_cli(cls):
         parser = ApiArgumentParser(description=cls.__doc__)
         args = parser.parse_args()
-        required_args = ('infile', 'outfile', 'sleep')
+        required_args = ('infile', 'outfile', 'sleep', 'config')
         if 'api_token' in args and args.api_token is not None:
             required_args += ('api_token', )
         else:
@@ -294,7 +298,9 @@ class SMAlignmentClient():
             api.set_token(api_token=self.api_token)
         else:
             LOG.info("Authenticating ... ")
-            api.authenticate(api_user=self.api_user, api_pass=self.api_password)
+            api_token = api.authenticate(api_user=self.api_user, api_pass=self.api_password)
+            LOG.debug("Saving API token to config file")
+            self.config['api_token'] = api_token
 
         LOG.info("Loading data from file '%s' ...", self.infile)
         with open(self.infile) as infile:

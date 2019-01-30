@@ -7,9 +7,40 @@ import argparse
 import logging
 import os
 
+# non-core
+import xdg.BaseDirectory
+
+# local
+from apiclient.models import ConfigFile
+
 DEFAULT_API_USER = 'junk@sillit.com'
 DEFAULT_API_PASSWORD = 'FJRbnz'
-DEFAULT_API_TOKEN = None
+DEFAULT_CONFIG_FILE = os.path.join(xdg.BaseDirectory.save_config_path(
+    'cath-swissmodel-api'), "config.json")
+
+
+class ApiConfig(object):
+    """
+    Defines API configuration file (saves API token)
+    """
+
+    def __init__(self, filename=DEFAULT_CONFIG_FILE):
+        """Creates a new instance of config file from a JSON filehandle."""
+        self.filename = filename
+        try:
+            with open(filename) as infile:
+                self._config =  ConfigFile.load(infile)
+        except Exception:
+            self._config = ConfigFile()
+
+    def __getitem__(self, key):
+        return getattr(self._config, key)
+
+    def __setitem__(self, key, value):
+        setattr(self._config, key, value)
+        with open(self.filename, "w") as outfile:
+            self._config.save(outfile)
+
 
 class ApiArgumentParser(argparse.ArgumentParser):
     """
@@ -29,6 +60,11 @@ class ApiArgumentParser(argparse.ArgumentParser):
         self.add_argument('--out',
                           type=str, required=True, dest='outfile', 
                           help='output results file')
+        self.add_argument('--config',
+                          type=str, dest='config',
+                          help='specify a config file storing the api_token '
+                               'in JSON format',
+                          default=DEFAULT_CONFIG_FILE)
         self.add_argument('--user', 
                           type=str, required=False, dest='api_user', 
                           help='specify API user')
@@ -52,14 +88,19 @@ class ApiArgumentParser(argparse.ArgumentParser):
 
         args = super().parse_args()
 
+        args.config = ApiConfig(args.config)
+        
+        # Get API token. Order: arg, env, config
+        if not args.api_token:
+            args.api_token = self._get_env('API_TOKEN')
+        if not args.api_token:
+            args.api_token = args.config['api_token']
+
         if not args.api_user:
             args.api_user = self._get_env('API_USER', DEFAULT_API_USER)
 
         if not args.api_password:
             args.api_password = self._get_env('API_PASSWORD', DEFAULT_API_PASSWORD)
-
-        if not args.api_token:
-            args.api_token = self._get_env('API_TOKEN', DEFAULT_API_TOKEN)
 
         return args
 
