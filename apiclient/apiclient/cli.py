@@ -9,6 +9,7 @@ import os
 
 DEFAULT_API_USER = 'junk@sillit.com'
 DEFAULT_API_PASSWORD = 'FJRbnz'
+DEFAULT_API_TOKEN = None
 
 class ApiArgumentParser(argparse.ArgumentParser):
     """
@@ -34,6 +35,9 @@ class ApiArgumentParser(argparse.ArgumentParser):
         self.add_argument('--pass',
                           type=str, required=False, dest='api_password', 
                           help='specify API password')
+        self.add_argument('--token',
+                          type=str, required=False, dest='api_token',
+                          help='specify API token')
         self.add_argument('--sleep',
                           type=int, default=5, 
                           help='waiting time between requests')
@@ -53,6 +57,9 @@ class ApiArgumentParser(argparse.ArgumentParser):
 
         if not args.api_password:
             args.api_password = self._get_env('API_PASSWORD', DEFAULT_API_PASSWORD)
+
+        if not args.api_token:
+            args.api_token = self._get_env('API_TOKEN', DEFAULT_API_TOKEN)
 
         return args
 
