@@ -16,6 +16,7 @@ from apiclient.models import ConfigFile
 
 DEFAULT_CONFIG_FILE = os.path.join(xdg.BaseDirectory.save_config_path(
     'cath-swissmodel-api'), "config.json")
+LOG = logging.getLogger(__name__)
 
 
 class ApiConfig(object):
@@ -29,6 +30,7 @@ class ApiConfig(object):
         try:
             with open(filename) as infile:
                 self._config =  ConfigFile.load(infile)
+            LOG.debug("Loaded config from {}".format(filename))
         except Exception:
             self._config = ConfigFile()
 
@@ -39,6 +41,7 @@ class ApiConfig(object):
         setattr(self._config, key, value)
         with open(self.filename, "w") as outfile:
             self._config.save(outfile)
+        LOG.debug("Saved config to {}".format(self.filename))
 
 
 class ApiArgumentParser(argparse.ArgumentParser):
