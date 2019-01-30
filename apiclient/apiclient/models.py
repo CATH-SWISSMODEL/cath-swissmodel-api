@@ -29,3 +29,26 @@ class SubmitAlignment(object):
         data = self.__dict__
         data = dict((k, v) for k, v in data.items() if v != None)
         return data
+
+
+class ConfigFile(object):
+    """ Represents the data in the configuration file """
+
+    def __init__(self, *, api_token=None):
+        self.api_token = api_token
+
+    @classmethod
+    def load(cls, infile):
+        """Creates a new instance of this model from a JSON filehandle."""
+        data = json.load(infile)
+        return cls(**data)
+
+    def as_dict(self):
+        """Represents the model as a dict (removes optional keys that do not have values)"""
+        data = self.__dict__
+        data = dict((k, v) for k, v in data.items() if v != None)
+        return data
+
+    def save(self, outfile):
+        """Saves this model to a JSON filehandle."""
+        json.dump(self.as_dict(), outfile)
