@@ -196,7 +196,7 @@ class SMAlignmentApiClient(SubmitStatusResultsApiClient):
                  auth_url=default_auth_url,
                  submit_url=default_submit_url,
                  status_url=default_status_url,
-                 results_url=default_results_url,
+                 results_url=default_results_url
                 ):
 
         # there has to be a nicer way of doing this?
