@@ -9,12 +9,11 @@ import os
 
 # non-core
 import xdg.BaseDirectory
+import getpass
 
 # local
 from apiclient.models import ConfigFile
 
-DEFAULT_API_USER = 'junk@sillit.com'
-DEFAULT_API_PASSWORD = 'FJRbnz'
 DEFAULT_CONFIG_FILE = os.path.join(xdg.BaseDirectory.save_config_path(
     'cath-swissmodel-api'), "config.json")
 
@@ -89,18 +88,24 @@ class ApiArgumentParser(argparse.ArgumentParser):
         args = super().parse_args()
 
         args.config = ApiConfig(args.config)
-        
+
         # Get API token. Order: arg, env, config
         if not args.api_token:
             args.api_token = self._get_env('API_TOKEN')
         if not args.api_token:
             args.api_token = args.config['api_token']
 
-        if not args.api_user:
-            args.api_user = self._get_env('API_USER', DEFAULT_API_USER)
+        if not args.api_token:
+            # We need a username and password
+            if not args.api_user:
+                args.api_user = self._get_env('API_USER')
+            if not args.api_user:
+                args.api_user = LazyFun(lambda: input("Username: "))
 
-        if not args.api_password:
-            args.api_password = self._get_env('API_PASSWORD', DEFAULT_API_PASSWORD)
+            if not args.api_password:
+                args.api_password = self._get_env('API_PASSWORD')
+            if not args.api_password:
+                args.api_password = LazyFun(getpass.getpass)
 
         return args
 
@@ -111,4 +116,18 @@ class ApiArgumentParser(argparse.ArgumentParser):
         else:
             var = default
         return var
+
+
+class LazyFun(object):
+    """
+    Lazy evaluation of function returning a string
+    """
+    def __init__(self, fun):
+        self.fun = fun
+        self._evaluated = False
+
+    def __str__(self):
+        if not self._evaluated:
+            self._string = self.fun()
+        return self._string
 
