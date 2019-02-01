@@ -80,8 +80,9 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         else:
             raise Exception("unexpected API method {}".format(method))
 
-        return r
+        self.process_response(r)
 
+        return r
 
     def submit(self, *, data=None, replacement_fields=None, status_success=201):
         """Submits the alignment data for modelling."""
@@ -171,16 +172,24 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         self.headers = headers
         return token_id
 
+    def process_response(self, res):
+        """Hook to allow manipulation/inspection of all responses"""
+        pass
+
     def process_authenticate_response(self, res):
+        """Hook to allow manipulation/inspection of response to `authenticate` action"""
         pass
 
     def process_submit_response(self, res):
+        """Hook to allow manipulation/inspection of response to `submit` action"""
         pass
 
     def process_status_response(self, res):
+        """Hook to allow manipulation/inspection of response to `status` action"""
         pass
 
     def process_results_response(self, res):
+        """Hook to allow manipulation/inspection of response to `results` action"""
         pass
 
 
@@ -269,12 +278,6 @@ class SMAlignmentClient(object):
     def new_from_cli(cls):
         parser = ApiArgumentParser(description=cls.__doc__)
         args = parser.parse_args()
-        required_args = ('infile', 'outfile', 'sleep', 'config')
-        if 'api_token' in args and args.api_token is not None:
-            required_args += ('api_token', )
-        else:
-            required_args += ('api_user', 'api_password')
-        kwargs = {k: v for k, v in vars(args).items() if k in required_args}
 
         level=logging.INFO
         if args.verbose:
@@ -282,6 +285,10 @@ class SMAlignmentClient(object):
         if args.quiet:
             level=logging.WARNING
         cls.addLogger(level=level)
+
+        passthrough_args = ('infile', 'outfile', 'sleep', 'api_token', 'api_user', 'api_password')
+
+        kwargs = {k: v for k, v in vars(args).items() if k in passthrough_args}
 
         return cls(**kwargs)
 
