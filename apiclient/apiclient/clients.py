@@ -13,7 +13,7 @@ import requests
 # local
 from apiclient.models import SubmitAlignment
 from apiclient.cli import ApiArgumentParser, ApiConfig
-from apiclient.error import AuthenticationError
+from apiclient.error import AuthenticationError, ArgError
 
 DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
 
@@ -228,24 +228,42 @@ class SMAlignmentApiClient(SubmitStatusResultsApiClient):
         """Retrieves the results of an existing project"""
         return super().results(replacement_fields={"project_id": project_id})
 
-class SMAlignmentClient():
+class SMAlignmentClient(object):
     """
     Generates 3D model from alignment data (via SWISS-MODEL API)
     """
 
     def __init__(self, *, infile, outfile, api_user=None, api_password=None,
-                 api_token=None, sleep=5, log_level=logging.INFO, config=None):
+                 api_token=None, sleep=5, log_level=logging.INFO, config=None,
+                 config_section=None, clear_config=False):
+        
+        if not config_section:
+            config_section=self.__class__.__name__
+
+        if config is None:
+            config = ApiConfig(section=config_section)
+        else:
+            config.section = config_section
+
         self.infile = infile
         self.outfile = outfile
-        if config is None:
-            config = ApiConfig()
-        self.config = config
-        self.api_user = api_user
-        self.api_password = api_password
-        self.api_token = api_token
         self.sleep = sleep
         self.log_level = log_level
-        self.apiclient = SMAlignmentApiClient()
+
+        self.api_token = api_token
+        self.api_user = api_user
+        self.api_password = api_password
+
+        if not self.api_token:
+            if 'api_token' in config:
+                self.api_token = config['api_token']
+            elif self.api_user and self.api_password:
+                pass
+            else:
+                raise ArgError("expected 'api_token' or ('api_user' and 'api_password')")
+
+        self._apiclient = SMAlignmentApiClient()
+        self._config = config
 
     @classmethod
     def new_from_cli(cls):
@@ -289,18 +307,20 @@ class SMAlignmentClient():
 
     def run(self):
     
-        api = self.apiclient
+        api = self._apiclient
+        config = self._config
 
         LOG.info("DATA:  {}".format(self.infile))
         LOG.info("MODEL: {}".format(self.outfile))
 
         if self.api_token is not None:
+            LOG.info("Setting API token ... ")
             api.set_token(api_token=self.api_token)
         else:
-            LOG.info("Authenticating ... ")
+            LOG.info("Authenticating via user/pass... (token_id not provided) ")
             api_token = api.authenticate(api_user=self.api_user, api_pass=self.api_password)
             LOG.debug("Saving API token to config file")
-            self.config['api_token'] = api_token
+            config['api_token'] = api_token
 
         LOG.info("Loading data from file '%s' ...", self.infile)
         with open(self.infile) as infile:
