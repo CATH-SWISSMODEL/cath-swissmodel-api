@@ -4,45 +4,17 @@ Common classes and helpers for CLI interaction
 
 # core
 import argparse
+import json
 import logging
 import os
 
 # non-core
-import xdg.BaseDirectory
 import getpass
 
 # local
-from apiclient.models import ConfigFile
+from cathsm.apiclient.config import ApiConfig
 
-DEFAULT_CONFIG_FILE = os.path.join(xdg.BaseDirectory.save_config_path(
-    'cath-swissmodel-api'), "config.json")
 LOG = logging.getLogger(__name__)
-
-
-class ApiConfig(object):
-    """
-    Defines API configuration file (saves API token)
-    """
-
-    def __init__(self, filename=DEFAULT_CONFIG_FILE):
-        """Creates a new instance of config file from a JSON filehandle."""
-        self.filename = filename
-        try:
-            with open(filename) as infile:
-                self._config =  ConfigFile.load(infile)
-            LOG.debug("Loaded config from {}".format(filename))
-        except Exception:
-            self._config = ConfigFile()
-
-    def __getitem__(self, key):
-        return getattr(self._config, key)
-
-    def __setitem__(self, key, value):
-        setattr(self._config, key, value)
-        with open(self.filename, "w") as outfile:
-            self._config.save(outfile)
-        LOG.debug("Saved config to {}".format(self.filename))
-
 
 class ApiArgumentParser(argparse.ArgumentParser):
     """
@@ -62,12 +34,11 @@ class ApiArgumentParser(argparse.ArgumentParser):
         self.add_argument('--out',
                           type=str, required=True, dest='outfile', 
                           help='output results file')
-        self.add_argument('--config',
-                          type=str, dest='config',
-                          help='specify a config file storing the api_token '
-                               'in JSON format',
-                          default=DEFAULT_CONFIG_FILE)
-        self.add_argument('--user', 
+        self.add_argument('--delete-config',
+                          action='store_true', dest='clear_config',
+                          help='remove settings from the config file',
+                          default=False)
+        self.add_argument('--user',
                           type=str, required=False, dest='api_user', 
                           help='specify API user')
         self.add_argument('--pass',
@@ -90,13 +61,9 @@ class ApiArgumentParser(argparse.ArgumentParser):
 
         args = super().parse_args()
 
-        args.config = ApiConfig(args.config)
-
         # Get API token. Order: arg, env, config
         if not args.api_token:
             args.api_token = self._get_env('API_TOKEN')
-        if not args.api_token:
-            args.api_token = args.config['api_token']
 
         if not args.api_token:
             # We need a username and password

@@ -4,7 +4,7 @@
 CLI tool to submit/retrieve models from alignment data
 """
 
-from apiclient.clients import SMAlignmentClient
+from cathsm.apiclient.clients import SMAlignmentClient
 
 def main():
     client = SMAlignmentClient.new_from_cli()

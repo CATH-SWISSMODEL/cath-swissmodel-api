@@ -1,7 +1,7 @@
 
 # API Clients
 
-This area contains scripts and libraries to simplify interaction with the CATH / SWISS-MODEL APIs.
+This area contains scripts and libraries to simplify interaction with APIs from [CATH](http://www.cathdb.info) (protein structure classification database) and [SWISS-MODEL](https://swissmodel.expasy.org/) (protein structure homology-modelling server).
 
 ### Layout
 
@@ -12,7 +12,7 @@ This area contains scripts and libraries to simplify interaction with the CATH /
 
 ### Examples
 
-**Build a 3D model with the SWISS-MODEL API**
+**Build a 3D model from template alignment data with the SWISS-MODEL API**
 
 ```bash
 $ ./scripts/api2.py --in example_data/A0PJE2__35-316.json --out tmp.pdb
@@ -23,16 +23,6 @@ input (ie `example_data/A0PJE2__35-316.json`):
 ```json
 {
     "auth_asym_id": "A",
-    "meta": {
-        "dope_score": -0.84426,
-        "funfam_id": "3.40.50.720-ff-290999",
-        "identity": 28.958000000000002,
-        "template.domain_id": "3rd5A00",
-        "template.pdb_start": "2",
-        "template.pdb_stop": "289",
-        "template.seqres_start": 1,
-        "template.seqres_stop": 291
-    },
     "pdb_id": "3rd5",
     "target_sequence": "---------E--VQIPGRVFLVTGGNSGI...",
     "template_seqres_offset": 0,

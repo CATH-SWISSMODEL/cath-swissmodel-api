@@ -11,9 +11,9 @@ import time
 import requests
 
 # local
-from apiclient.models import SubmitAlignment
-from apiclient.cli import ApiArgumentParser, ApiConfig
-from apiclient.error import AuthenticationError
+from cathsm.apiclient.models import SubmitAlignment
+from cathsm.apiclient.cli import ApiArgumentParser, ApiConfig
+from cathsm.apiclient.errors import AuthenticationError, ArgError
 
 DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
 
@@ -80,8 +80,9 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         else:
             raise Exception("unexpected API method {}".format(method))
 
-        return r
+        self.process_response(r)
 
+        return r
 
     def submit(self, *, data=None, replacement_fields=None, status_success=201):
         """Submits the alignment data for modelling."""
@@ -171,16 +172,24 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         self.headers = headers
         return token_id
 
+    def process_response(self, res):
+        """Hook to allow manipulation/inspection of all responses"""
+        pass
+
     def process_authenticate_response(self, res):
+        """Hook to allow manipulation/inspection of response to `authenticate` action"""
         pass
 
     def process_submit_response(self, res):
+        """Hook to allow manipulation/inspection of response to `submit` action"""
         pass
 
     def process_status_response(self, res):
+        """Hook to allow manipulation/inspection of response to `status` action"""
         pass
 
     def process_results_response(self, res):
+        """Hook to allow manipulation/inspection of response to `results` action"""
         pass
 
 
@@ -228,35 +237,51 @@ class SMAlignmentApiClient(SubmitStatusResultsApiClient):
         """Retrieves the results of an existing project"""
         return super().results(replacement_fields={"project_id": project_id})
 
-class SMAlignmentClient():
+class SMAlignmentClient(object):
     """
     Generates 3D model from alignment data (via SWISS-MODEL API)
     """
 
     def __init__(self, *, infile, outfile, api_user=None, api_password=None,
-                 api_token=None, sleep=5, log_level=logging.INFO, config=None):
+                 api_token=None, sleep=5, log_level=logging.INFO, config=None,
+                 config_section=None, clear_config=False):
+        
+        if not config_section:
+            config_section=self.__class__.__name__      
+
+        if config is None:
+            config = ApiConfig(section=config_section)
+        else:
+            config.section = config_section
+        
+        if clear_config:
+            LOG.info("Clearing existing config for section: '{}'".format(config.section))
+            config.delete_section()
+
         self.infile = infile
         self.outfile = outfile
-        if config is None:
-            config = ApiConfig()
-        self.config = config
-        self.api_user = api_user
-        self.api_password = api_password
-        self.api_token = api_token
         self.sleep = sleep
         self.log_level = log_level
-        self.apiclient = SMAlignmentApiClient()
+
+        self.api_token = api_token
+        self.api_user = api_user
+        self.api_password = api_password
+
+        if not self.api_token:
+            if 'api_token' in config:
+                self.api_token = config['api_token']
+            elif self.api_user and self.api_password:
+                pass
+            else:
+                raise ArgError("expected 'api_token' or ('api_user' and 'api_password')")
+
+        self._apiclient = SMAlignmentApiClient()
+        self._config = config
 
     @classmethod
     def new_from_cli(cls):
         parser = ApiArgumentParser(description=cls.__doc__)
         args = parser.parse_args()
-        required_args = ('infile', 'outfile', 'sleep', 'config')
-        if 'api_token' in args and args.api_token is not None:
-            required_args += ('api_token', )
-        else:
-            required_args += ('api_user', 'api_password')
-        kwargs = {k: v for k, v in vars(args).items() if k in required_args}
 
         level=logging.INFO
         if args.verbose:
@@ -264,6 +289,13 @@ class SMAlignmentClient():
         if args.quiet:
             level=logging.WARNING
         cls.addLogger(level=level)
+
+        passthrough_args = ('infile', 'outfile', 'sleep', 'clear_config',
+            'api_token', 'api_user', 'api_password')
+
+        kwargs = {k: v for k, v in vars(args).items() if k in passthrough_args}
+
+        LOG.debug("Passing CLI args: {}".format(kwargs))
 
         return cls(**kwargs)
 
@@ -289,18 +321,20 @@ class SMAlignmentClient():
 
     def run(self):
     
-        api = self.apiclient
+        api = self._apiclient
+        config = self._config
 
         LOG.info("DATA:  {}".format(self.infile))
         LOG.info("MODEL: {}".format(self.outfile))
 
         if self.api_token is not None:
+            LOG.info("Setting API token ... ")
             api.set_token(api_token=self.api_token)
         else:
-            LOG.info("Authenticating ... ")
+            LOG.info("Authenticating via user/pass... (token_id not provided) ")
             api_token = api.authenticate(api_user=self.api_user, api_pass=self.api_password)
             LOG.debug("Saving API token to config file")
-            self.config['api_token'] = api_token
+            config['api_token'] = api_token
 
         LOG.info("Loading data from file '%s' ...", self.infile)
         with open(self.infile) as infile:
