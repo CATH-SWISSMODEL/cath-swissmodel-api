@@ -11,9 +11,9 @@ import time
 import requests
 
 # local
-from apiclient.models import SubmitAlignment
-from apiclient.cli import ApiArgumentParser, ApiConfig
-from apiclient.error import AuthenticationError, ArgError
+from cathsm.apiclient.models import SubmitAlignment
+from cathsm.apiclient.cli import ApiArgumentParser, ApiConfig
+from cathsm.apiclient.errors import AuthenticationError, ArgError
 
 DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
 
@@ -247,12 +247,16 @@ class SMAlignmentClient(object):
                  config_section=None, clear_config=False):
         
         if not config_section:
-            config_section=self.__class__.__name__
+            config_section=self.__class__.__name__      
 
         if config is None:
             config = ApiConfig(section=config_section)
         else:
             config.section = config_section
+        
+        if clear_config:
+            LOG.info("Clearing existing config for section: '{}'".format(config.section))
+            config.delete_section()
 
         self.infile = infile
         self.outfile = outfile
@@ -286,9 +290,12 @@ class SMAlignmentClient(object):
             level=logging.WARNING
         cls.addLogger(level=level)
 
-        passthrough_args = ('infile', 'outfile', 'sleep', 'api_token', 'api_user', 'api_password')
+        passthrough_args = ('infile', 'outfile', 'sleep', 'clear_config',
+            'api_token', 'api_user', 'api_password')
 
         kwargs = {k: v for k, v in vars(args).items() if k in passthrough_args}
+
+        LOG.debug("Passing CLI args: {}".format(kwargs))
 
         return cls(**kwargs)
 

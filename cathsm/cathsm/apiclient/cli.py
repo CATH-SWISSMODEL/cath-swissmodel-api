@@ -9,11 +9,10 @@ import logging
 import os
 
 # non-core
-import xdg.BaseDirectory
 import getpass
 
 # local
-from apiclient.config import ApiConfig
+from cathsm.apiclient.config import ApiConfig
 
 LOG = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class ApiArgumentParser(argparse.ArgumentParser):
                           type=str, required=True, dest='outfile', 
                           help='output results file')
         self.add_argument('--delete-config',
-                          type=bool, dest='clear_config',
+                          action='store_true', dest='clear_config',
                           help='remove settings from the config file',
                           default=False)
         self.add_argument('--user',

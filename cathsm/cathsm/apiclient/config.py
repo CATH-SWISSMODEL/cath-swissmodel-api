@@ -8,8 +8,7 @@ import xdg.BaseDirectory
 import getpass
 
 # local
-#from apiclient.models import ConfigFile
-from apiclient.error import ConfigError
+from cathsm.apiclient.errors import ConfigError
 
 LOG = logging.getLogger(__name__)
 DEFAULT_CONFIG_FILE = os.path.join(xdg.BaseDirectory.save_config_path(
@@ -38,11 +37,12 @@ class ApiConfig(object):
         """Removes all keys that match the given section."""
         if not section_id:
             section_id = self.section
-        del(self._config[section_id])
+        if section_id in self._config:
+            del(self._config[section_id])
         self.write()
 
     def __contains__(self, key):
-        section = self._config[self.section]
+        section = self._config[self.section] if self.section in self._config else {}
         return key in section
 
     def __getitem__(self, key):
@@ -52,6 +52,8 @@ class ApiConfig(object):
         return section[key]
 
     def __setitem__(self, key, value):
+        if self.section not in self._config:
+            self._config[self.section] = {}
         section = self._config[self.section]
         section[key] = value
         LOG.debug("Set config [{}] {}={}".format(self.section, key, value))
