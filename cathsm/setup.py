@@ -17,7 +17,7 @@ setup(
     packages=find_packages(include='cathsm.*'),
     test_suite="tests",
     scripts=[
-        'scripts/cathsm_api2.py',
+        'scripts/cathsm-api2',
     ],
     install_requires=[
         'requests',
