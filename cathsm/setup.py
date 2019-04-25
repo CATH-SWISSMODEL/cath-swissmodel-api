@@ -21,6 +21,7 @@ setup(
     ],
     install_requires=[
         'requests',
+	'pyxdg',
     ],
     classifiers=(
         "Programming Language :: Python :: 3",
