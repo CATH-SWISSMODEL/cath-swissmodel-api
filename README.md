@@ -7,8 +7,8 @@ This repository is here to help development relating to the CATH / SWISS-MODEL A
 General layout:
 
 ```
-├── api      API specification documents (OpenAPI)
-├── cathapi  Code for backend CATH API
+├── cathsm   Code for the CATH-SM API clients
+├── cathapi  Code for backend CATH API (API1)
 ├── docs     general project admin
 └── python   Tests
 ```
@@ -46,21 +46,29 @@ The project has four individual APIs, each with its own set of operations / endp
 Setup a local python virtual environment; install dependencies.
 
 ```sh
-$ cd cath-swissmodel-api
+$ cd cath-swissmodel-api/cathapi
 $ python3 -m venv venv
 $ source venv/bin/activate
-$ pip install -r requirements.txt
+$ pip install -e .
 ```
 
 ### Starting a local server
 
 ```sh
-$ source ./venv/bin/activate
-$ cd cathapi/
-$ ./manage.py runserver
+$ cd cath-swissmodel-api/cathapi
+$ source venv/bin/activate
+$ python ./manage.py runserver
 ```
 
 http://127.0.0.1:8000/
+
+### Running tests
+
+```sh
+$ cd cath-swissmodel-api/cathapi
+$ source venv/bin/activate
+$ python ./manage.py test
+```
 
 ## Useful Links
 
