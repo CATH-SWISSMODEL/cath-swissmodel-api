@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+"""
+CLI tool to search for template structures for modelling 
+"""
+
+from cathsm.apiclient.managers import CathSelectTemplateApiClientManager
+
+if __name__ == '__main__':
+    client = CathSelectTemplateApiClientManager.new_from_cli()
+    client.run()
