@@ -4,15 +4,16 @@ import logging
 import os
 
 # non-core
-import xdg.BaseDirectory
+from xdg import XDG_CONFIG_HOME
 import getpass
 
 # local
 from cathsm.apiclient.errors import ConfigError
 
 LOG = logging.getLogger(__name__)
-DEFAULT_CONFIG_FILE = os.path.join(xdg.BaseDirectory.save_config_path(
-    'cath-swissmodel-api'), "config.ini")
+CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, 'cath-swissmodel-api')
+os.makedirs(CONFIG_DIR, exist_ok=True)
+DEFAULT_CONFIG_FILE = os.path.join(CONFIG_DIR, "config.ini")
 
 class ApiConfig(object):
     """
