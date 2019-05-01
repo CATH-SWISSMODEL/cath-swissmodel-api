@@ -3,23 +3,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
-class SubmitAlignment(object):
-    """Represents the data required to submit a job to the SM Alignment API."""
-
-    def __init__(self, *, target_sequence, template_sequence, template_seqres_offset,
-                 pdb_id, auth_asym_id, assembly_id=None, project_id=None, meta=None):
-
-        if not meta:
-            meta = {}
-
-        self.target_sequence = target_sequence
-        self.template_sequence = template_sequence
-        self.template_seqres_offset = template_seqres_offset
-        self.pdb_id = pdb_id
-        self.auth_asym_id = auth_asym_id
-        self.assembly_id = assembly_id
-        self.project_id = project_id
-        self.meta = meta
+class Model(object):
 
     @classmethod
     def load(cls, infile):
@@ -37,3 +21,36 @@ class SubmitAlignment(object):
             del data['meta']
         data = dict((k, v) for k, v in data.items() if v != None)
         return data
+
+
+class SubmitAlignment(Model):
+    """Represents the data required to submit a job to the SM Alignment API."""
+
+    def __init__(self, *, target_sequence, template_sequence, template_seqres_offset,
+                 pdb_id, auth_asym_id, assembly_id=None, project_id=None, meta=None):
+
+        if not meta:
+            meta = {}
+
+        self.target_sequence = target_sequence
+        self.template_sequence = template_sequence
+        self.template_seqres_offset = template_seqres_offset
+        self.pdb_id = pdb_id
+        self.auth_asym_id = auth_asym_id
+        self.assembly_id = assembly_id
+        self.project_id = project_id
+        self.meta = meta
+
+
+class SubmitSelectTemplate(Model):
+    """Represents the data required to submit a job to the SM Alignment API."""
+
+    def __init__(self, *, query_id, query_sequence, task_id=None, meta=None):
+
+        if not meta:
+            meta = {}
+
+        self.query_id = query_id
+        self.query_sequence = query_sequence
+        self.task_id = task_id
+        self.meta = meta
