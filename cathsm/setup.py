@@ -14,12 +14,14 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CATH-SWISSMODEL/cath-swissmodel-api",
-    packages=find_packages(include='cathsm.*'),
+    packages=find_packages(),
     test_suite="tests",
     scripts=[
         'scripts/cathsm-api2',
     ],
     install_requires=[
+        'xdg',
+#        'getpass',
         'requests',
     ],
     classifiers=(
