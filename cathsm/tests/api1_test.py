@@ -21,7 +21,10 @@ class CathSelectTemplateApiClientTest(unittest.TestCase):
     def test_defaults(self):
         client = CathSelectTemplateApiClient()
         self.assertIsInstance(client, CathSelectTemplateApiClient)
-                
+            
+        base_url = client.base_url
+        self.assertEqual(base_url, 'http://www.cathdb.info/cathsm-api')
+
         self.assertEqual(
             client.get_url('submit'),
             base_url + '/select-template/')
