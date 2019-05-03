@@ -1,0 +1,12 @@
+{
+  "python.pythonPath": "cathsm/venv/bin/python",
+  "python.linting.pylintEnabled": true,
+  "python.linting.pep8Enabled": false,
+  "python.linting.flake8Enabled": false,
+  "python.linting.pylintUseMinimalCheckers": false,
+  "python.linting.pylintPath": "cathsm/venv/bin/pylint",
+  "python.linting.enabled": true,
+  "python.linting.pylintArgs": [
+    "--load-plugins=pylint_django"
+  ]
+}

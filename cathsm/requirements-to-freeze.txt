@@ -1,3 +1,5 @@
 requests
 colorlog
 pyxdg
+cathpy>=0.1.17
+
