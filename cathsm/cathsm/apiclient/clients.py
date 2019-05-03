@@ -154,7 +154,8 @@ class SubmitStatusResultsApiClient(ApiClientBase):
 
     def authenticate(self, *, api_user=None, api_pass=None):
         data = {'username': api_user, 'password': api_pass}
-        LOG.debug('get_auth_headers.data: {}'.format(data))
+
+        LOG.info('get_auth_headers.data: {}'.format(data))
 
         r = self.send_request(
             method='POST',
@@ -194,7 +195,7 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         """Hook to allow manipulation/inspection of response to `results` action"""
         return res
 
-class SMAlignmentApiClient(SubmitStatusResultsApiClient):
+class SMAlignmentClient(SubmitStatusResultsApiClient):
     """
     Client for API 2 (SWISSMODEL)
 
@@ -239,7 +240,7 @@ class SMAlignmentApiClient(SubmitStatusResultsApiClient):
         return super().results(replacement_fields={"project_id": project_id})
 
 
-class CathSelectTemplateApiClient(SubmitStatusResultsApiClient):
+class CathSelectTemplateClient(SubmitStatusResultsApiClient):
     """
     Client for API 1 (CATH)
 
@@ -281,4 +282,5 @@ class CathSelectTemplateApiClient(SubmitStatusResultsApiClient):
 
     def results(self, task_id):
         """Retrieves the results of an existing task"""
-        return super().results(replacement_fields={"task_id": task_id})
+        results = super().results(replacement_fields={"task_id": task_id})
+        return results

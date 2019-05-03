@@ -4,8 +4,8 @@
 CLI tool to search for template structures for modelling 
 """
 
-from cathsm.apiclient.managers import CathSelectTemplateApiClientManager
+from cathsm.apiclient import managers
 
 if __name__ == '__main__':
-    client = CathSelectTemplateApiClientManager.new_from_cli()
+    client = managers.CathSelectTemplateManager.new_from_cli()
     client.run()

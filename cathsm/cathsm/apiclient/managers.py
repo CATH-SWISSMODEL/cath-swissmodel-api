@@ -10,9 +10,8 @@ import time
 # local
 from cathsm.apiclient.models import SubmitAlignment, SubmitSelectTemplate
 from cathsm.apiclient.cli import ApiArgumentParser, ApiConfig
-from cathsm.apiclient.errors import AuthenticationError, ArgError
-from cathsm.apiclient.clients import (SMAlignmentApiClient,
-    CathSelectTemplateApiClient)
+from cathsm.apiclient.errors import ArgError
+from cathsm.apiclient import clients
 
 DEFAULT_INFO_FORMAT = '%(asctime)s %(levelname)7s | %(message)s'
 DEFAULT_DEBUG_FORMAT = '%(asctime)s %(name)-30s %(levelname)7s | %(message)s'
@@ -21,9 +20,9 @@ LOG = logging.getLogger(__name__)
 
 class ApiClientManagerBase(object):
 
-    def __init__(self, *, infile, outfile, 
+    def __init__(self, *, infile, outfile, api_client,
                  sleep=5, log_level=logging.INFO,
-                 api_user=None, api_password=None, api_token=None,
+                 api_user=None, api_password=None, api_token=None, 
                  config=None, config_section=None, clear_config=False):
         
         if not config_section:
@@ -46,6 +45,8 @@ class ApiClientManagerBase(object):
         self.api_token = api_token
         self.api_user = api_user
         self.api_password = api_password
+
+        self.api_client = api_client
 
         if not self.api_token:
             if 'api_token' in config:
@@ -101,7 +102,7 @@ class ApiClientManagerBase(object):
 
     def authenticate(self):
 
-        api = self._apiclient
+        api = self.api_client
         config = self._config
 
         if self.api_token is not None:
@@ -114,19 +115,20 @@ class ApiClientManagerBase(object):
             config['api_token'] = api_token
 
 
-class CathSelectTemplateApiClientManager(ApiClientManagerBase):
+class CathSelectTemplateManager(ApiClientManagerBase):
     """
     Selected template structure from sequence (via CATH API)
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
-        self._apiclient = CathSelectTemplateApiClient()
+    def __init__(self, *args, api_client=None, **kwargs):
         self._submit_data_cls = SubmitSelectTemplate
+        if not api_client:
+            api_client = clients.CathSelectTemplateClient()
+        super().__init__(api_client=api_client, **kwargs)
 
     def run(self):
     
-        api = self._apiclient
+        api = self.api_client
         config = self._config
 
         LOG.info("IN_FILE:  {}".format(self.infile))
@@ -159,26 +161,25 @@ class CathSelectTemplateApiClientManager(ApiClientManagerBase):
         LOG.info("Retrieving results ... ")
         result_r = api.results(task_id)
         
-        result_r['results_json']
-
         LOG.info("result: {}".format(result_r))
         
         LOG.info("Writing resolved hits to {}".format(self.outfile))
         with open(self.outfile, 'w') as outfile:
             outfile.write()
 
-class SMAlignmentApiClientManager(ApiClientManagerBase):
+class SMAlignmentManager(ApiClientManagerBase):
     """
     Generates 3D model from alignment data (via SWISS-MODEL API)
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
-        self._apiclient = SMAlignmentApiClient()
+    def __init__(self, *args, api_client=None, **kwargs):
+        if not api_client:
+            api_client = clients.SMAlignmentClient()
+        super().__init__(api_client=api_client, **kwargs)
 
     def run(self):
     
-        api = self._apiclient
+        api = self.api_client
         config = self._config
 
         LOG.info("IN_FILE:  {}".format(self.infile))

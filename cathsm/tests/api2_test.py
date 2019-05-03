@@ -1,14 +1,10 @@
 # core
-import json
 import os
-import configparser
 import tempfile
 import unittest
 
 # local
-from cathsm.apiclient.config import ApiConfig
-from cathsm.apiclient.clients import SMAlignmentApiClient
-from cathsm.apiclient.managers import SMAlignmentApiClientManager
+from cathsm.apiclient import clients, managers
 
 DELETE_TEMP_FILES=False
 
@@ -16,11 +12,11 @@ EXAMPLE_DATA_PATH = os.path.join(os.path.dirname(__file__), '..', 'example_data'
 EXAMPLE_USER='junk@sillit.com'
 EXAMPLE_PASSWORD='FJRbnz'
 
-class SMAlignmentApiClientTest(unittest.TestCase):
+class SMAlignmentClientTest(unittest.TestCase):
 
     def test_defaults(self):
-        client = SMAlignmentApiClient()
-        self.assertIsInstance(client, SMAlignmentApiClient)
+        client = clients.SMAlignmentClient()
+        self.assertIsInstance(client, clients.SMAlignmentClient)
         
         base_url = client.base_url
         self.assertEqual(base_url, 'https://beta.swissmodel.expasy.org')
@@ -37,7 +33,7 @@ class SMAlignmentApiClientTest(unittest.TestCase):
             client.get_url('results', {"project_id": "foo"}),
             base_url + '/alignment/foo/')
 
-class SMAlignmentClientTest(unittest.TestCase):
+class SMAlignmentManagerTest(unittest.TestCase):
 
     def test_defaults(self):
 
@@ -51,7 +47,7 @@ class SMAlignmentClientTest(unittest.TestCase):
 
         # run with user auth
         outfile1 = tempfile.NamedTemporaryFile(delete=DELETE_TEMP_FILES)
-        client1 = SMAlignmentClient(infile=infile, outfile=outfile1.name, 
+        client1 = managers.SMAlignmentManager(infile=infile, outfile=outfile1.name, 
             api_user=EXAMPLE_USER, api_password=EXAMPLE_PASSWORD)
         client1.run()
 
@@ -62,7 +58,7 @@ class SMAlignmentClientTest(unittest.TestCase):
 
         # run with token auth
         outfile2 = tempfile.NamedTemporaryFile(delete=DELETE_TEMP_FILES)
-        client2 = SMAlignmentClient(infile=infile, outfile=outfile2.name, 
+        client2 = managers.SMAlignmentManager(infile=infile, outfile=outfile2.name, 
             api_token=api_token)
         client2.run()
         self.assertTrue(os.path.isfile(outfile2.name), 'outfile exists (token auth)')

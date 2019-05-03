@@ -1,5 +1,4 @@
 # core
-import json
 import os
 import configparser
 import tempfile
@@ -7,8 +6,6 @@ import unittest
 
 # local
 from cathsm.apiclient.config import ApiConfig
-from cathsm.apiclient.clients import SMAlignmentApiClient
-from cathsm.apiclient.managers import SMAlignmentApiClientManager
 
 DELETE_TEMP_FILES=False
 
