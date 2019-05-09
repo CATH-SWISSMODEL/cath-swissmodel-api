@@ -4,21 +4,25 @@ Clients that provide interaction with CATH / SWISS-MODEL API.
 
 # core
 import logging
+import json
 
 # non-core
 import requests
+from cathpy import funfhmmer
 
 # local
-from cathsm.apiclient.errors import AuthenticationError
+from cathsm.apiclient.errors import AuthenticationError, NoResultsError
 
 DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
 
 # currently you have to start this yourself...
 # cd ../cathapi && python3 manage.py runserver
-DEFAULT_CATH_BASE_URL = 'http://localhost:8000'
+#DEFAULT_CATH_BASE_URL = 'http://localhost:8000'
+DEFAULT_CATH_BASE_URL = 'http://www.cathdb.info/cathsm'
 
 
 LOG = logging.getLogger(__name__)
+
 
 class ApiClientBase():
     """Base class for API clients."""
@@ -28,6 +32,7 @@ class ApiClientBase():
         if not headers:
             headers = {}
         self.headers = headers
+
 
 class SubmitStatusResultsApiClient(ApiClientBase):
     """Class for asynchronous API clients that follow a submit/status/result model."""
@@ -56,9 +61,20 @@ class SubmitStatusResultsApiClient(ApiClientBase):
 
         return full_url
 
-    def send_request(self, action, replacement_fields=None, data=None, method="GET", headers=None):
+    def send_request(self, *, action, method="GET", replacement_fields=None, data=None, headers=None):
+        """
+        Sends the request to the server and performs basic sanity checks on the response.
 
-        if data and type(data) is not dict:
+        Args:
+            action (str): URL of the endpoint
+            method (str): HTTP method to use (default: "GET")
+            replacement_fields (dict): replace fields in the URL (optional)
+            data (dict): send data (optional)
+
+        Returns:
+            response (:class:`requests.Response`): HTTP response object
+        """
+        if data and not isinstance(data, dict):
             data = data.as_dict()
 
         if not replacement_fields:
@@ -69,23 +85,24 @@ class SubmitStatusResultsApiClient(ApiClientBase):
 
         url = self.get_url(action, replacement_fields)
 
-        LOG.debug('{} {:50s}'.format(method, url))
+        LOG.info('{} {:50s}'.format(method, url))
+        LOG.debug('headers: %s', str(self.headers))
 
         if method == "GET":
-            r = requests.get(url, headers=self.headers)
+            res = requests.get(url, headers=self.headers)
         elif method == "POST":
-            r = requests.post(url, data=data, headers=self.headers)
+            res = requests.post(url, data=data, headers=self.headers)
         else:
             raise Exception("unexpected API method {}".format(method))
 
-        self.process_response(r)
+        self.process_response(res)
 
-        return r
+        return res
 
     def check_response(self, *, response, status_success=200):
         if response.status_code != status_success:
             LOG.error("Error: failed to submit data: status=%s (expected %s), msg=%s",
-                response.status_code, response.text, status_success)
+                      response.status_code, status_success, response.text)
             response.raise_for_status()
         try:
             response_data = response.json()
@@ -97,15 +114,16 @@ class SubmitStatusResultsApiClient(ApiClientBase):
     def submit(self, *, data=None, replacement_fields=None, status_success=201):
         """Submits the alignment data for modelling."""
 
-        r = self.send_request(
-            method='POST', 
-            action='submit', 
-            data=data, 
+        res = self.send_request(
+            method='POST',
+            action='submit',
+            data=data,
             replacement_fields=replacement_fields)
 
-        r = self.process_submit_response(r)
+        res = self.process_submit_response(res)
 
-        response_data = self.check_response(response=r, status_success=status_success)
+        response_data = self.check_response(
+            response=res, status_success=status_success)
 
         return response_data
 
@@ -117,14 +135,15 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         if not replacement_fields:
             replacement_fields = request_data
 
-        r = self.send_request(
+        res = self.send_request(
             method='GET',
             action='status',
             replacement_fields=replacement_fields)
 
-        r = self.process_status_response(r)
+        res = self.process_status_response(res)
 
-        response_data = self.check_response(response=r, status_success=status_success)
+        response_data = self.check_response(
+            response=res, status_success=status_success)
 
         return response_data
 
@@ -136,43 +155,54 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         if not replacement_fields:
             replacement_fields = request_data
 
-        r = self.send_request(
+        res = self.send_request(
             method='GET',
             action='results',
             replacement_fields=replacement_fields)
 
-        r = self.process_results_response(r)
+        res = self.process_results_response(res)
 
-        response_data = self.check_response(response=r, status_success=status_success)
+        response_data = self.check_response(
+            response=res, status_success=status_success)
 
         return response_data
 
     def set_token(self, *, api_token=None):
-        LOG.debug('Using authorization token {}'.format(api_token))
-        headers = {'Authorization': 'token {}'.format(api_token)}
+        """Sets the token for the client."""
+
+        headers = {'Authorization': 'Token {}'.format(api_token)}
         self.headers = headers
 
     def authenticate(self, *, api_user=None, api_pass=None):
+        """
+        Authenticates the client.
+
+        Args:
+            api_user (str): username
+            api_pass (str): password
+
+        Returns:
+            token_id (str): API token
+        """
+
         data = {'username': api_user, 'password': api_pass}
 
-        LOG.info('get_auth_headers.data: {}'.format(data))
-
-        r = self.send_request(
+        res = self.send_request(
             method='POST',
             action='auth',
             data=data,
             headers={'accept': 'application/json'})
 
-        LOG.debug("auth_response [%s]: %s", r.status_code, r.json())
-        response_data = r.json()
+        LOG.debug("auth_response [%s]: %s", res.status_code, res.json())
+        response_data = res.json()
         if 'token' in response_data:
             token_id = response_data['token']
-            LOG.debug('Using token {}'.format(token_id))
+            LOG.debug('Using token %s', token_id)
         else:
-            raise AuthenticationError("failed to get token from response: {}".format(r.text))
+            raise AuthenticationError(
+                "failed to get token from response: {}".format(res.text))
 
-        headers = {'Authorization': 'token {}'.format(token_id)}
-        self.headers = headers
+        self.set_token(api_token=token_id)
         return token_id
 
     def process_response(self, res):
@@ -195,6 +225,7 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         """Hook to allow manipulation/inspection of response to `results` action"""
         return res
 
+
 class SMAlignmentClient(SubmitStatusResultsApiClient):
     """
     Client for API 2 (SWISSMODEL)
@@ -215,7 +246,7 @@ class SMAlignmentClient(SubmitStatusResultsApiClient):
                  submit_url=default_submit_url,
                  status_url=default_status_url,
                  results_url=default_results_url
-                ):
+                 ):
 
         # there has to be a nicer way of doing this?
         args = {
@@ -227,15 +258,15 @@ class SMAlignmentClient(SubmitStatusResultsApiClient):
         }
         super().__init__(**args)
 
-    def submit(self, *, data):
+    def submit(self, *, data):  # pylint: disable=W0221
         """Submits data to the API."""
         return super().submit(data=data)
 
-    def status(self, project_id):
+    def status(self, project_id):  # pylint: disable=W0221
         """Retrieves the status of an existing project"""
         return super().status(replacement_fields={"project_id": project_id})
 
-    def results(self, project_id):
+    def results(self, project_id):  # pylint: disable=W0221
         """Retrieves the results of an existing project"""
         return super().results(replacement_fields={"project_id": project_id})
 
@@ -260,7 +291,7 @@ class CathSelectTemplateClient(SubmitStatusResultsApiClient):
                  submit_url=default_submit_url,
                  status_url=default_status_url,
                  results_url=default_results_url
-                ):
+                 ):
 
         # there has to be a nicer way of doing this?
         args = {
@@ -270,17 +301,76 @@ class CathSelectTemplateClient(SubmitStatusResultsApiClient):
             "status_url": status_url,
             "results_url": results_url,
         }
+        self._result_response = None
         super().__init__(**args)
 
-    def submit(self, *, data):
+    def submit(self, *, data):    # pylint: disable=W0221
         """Submits data to the API."""
         return super().submit(data=data)
 
-    def status(self, task_id):
+    def status(self, task_id):  # pylint: disable=W0221
         """Retrieves the status of an existing task"""
         return super().status(replacement_fields={"task_id": task_id})
 
-    def results(self, task_id):
-        """Retrieves the results of an existing task"""
-        results = super().results(replacement_fields={"task_id": task_id})
-        return results
+    def results(self, task_id):  # pylint: disable=W0221
+        """
+        Retrieves the results of an existing task
+
+        This method will also parse these results and make the `funfam_scan`
+        and `funfam_resolved_scan` methods available. 
+
+        Args:
+            task_id (str): id of the task
+
+        Returns:
+
+        """
+        cathsm_results_data = super().results(
+            replacement_fields={"task_id": task_id})
+        try:
+            results_data = json.loads(cathsm_results_data['results_json'])
+        except:
+            LOG.error(
+                "failed to deserialise JSON string from cathsm 'results_json'")
+            raise
+
+        LOG.debug("results_data: %s", str(results_data)[:100])
+        self._result_response = funfhmmer.ResultResponse(**results_data)
+        return cathsm_results_data
+
+    @property
+    def result_response(self):
+        """
+        Provides access to the response object (containing scan results)
+
+        Returns:
+            result_response (:class:`cathpy.funfhmmer.ResultResponse`)
+        """
+        if not self._result_response:
+            raise NoResultsError(
+                "cannot get funfam scan: results have not yet been retrieved")
+        return self._result_response
+
+    def funfam_scan(self):
+        """
+        Provides access to the scan results (all matches)
+
+        Returns:
+            scan (:class:`cathpy.models.Scan`): scan results for all FunFam matches
+
+        Throws:
+            NoResultsError: results must have been fetched before calling this method 
+        """
+        return self.result_response.funfam_scan
+
+    def funfam_resolved_scan(self):
+        """
+        Provides access to the scan results (resolved to best domain matches)
+
+        Returns:
+            scan (:class:`cathpy.models.Scan`): scan results for resolved FunFam matches
+
+        Throws:
+            NoResultsError: results must have been fetched before calling this method 
+        """
+        return self.result_response.funfam_resolved_scan
