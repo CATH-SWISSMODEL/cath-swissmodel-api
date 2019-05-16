@@ -10,7 +10,7 @@ import time
 # local
 from cathsm.apiclient.models import SubmitAlignment, SubmitSelectTemplate
 from cathsm.apiclient.cli import ApiArgumentParser, ApiConfig
-from cathsm.apiclient.errors import ArgError
+from cathsm.apiclient.errors import ArgError, NoResultsError
 from cathsm.apiclient import clients
 
 DEFAULT_INFO_FORMAT = '%(asctime)s %(levelname)7s | %(message)s'
@@ -181,11 +181,36 @@ class CathSelectTemplateManager(ApiClientManagerBase):
 
         LOG.debug("result: %s", str(result_r)[:100])
 
-        self.results_json = result_r
+        funfam_resolved_scan = self.funfam_resolved_scan()
 
-        LOG.info("Writing resolved hits to %s", self.outfile)
-        # with open(self.outfile, 'w') as outfile:
-        #     outfile.write()
+        LOG.info("Resolved Funfam Matches:")
+        for line in funfam_resolved_scan.as_tsv().split('\n'):
+            LOG.info("  %s", line)
+
+        if not funfam_resolved_scan.results:
+            raise NoResultsError(
+                "failed to get any results from funfam_resolved_scan")
+
+        scan_result = funfam_resolved_scan.results[0]
+        for hit in scan_result.hits:
+            LOG.info("hit: %s", hit)
+            # get subsequence for "domain"
+            #query_subseq = query_sequence.apply_segments([[hit.start, hit.stop]])
+
+            # call endpoint that retrieves the alignment to best template in funfam hit
+
+            # download funfam alignment
+            #ff_align = download_funfam_alignment(hit.match)
+
+            # get best domain for funfam
+            # select_rep = SelectBlastRep(align=ff_align, ref_seq=query_subseq)
+            # best_template = select_rep.get_best_blast_hit()
+
+            # get pairwise alignment
+            # mafft = MafftAddSequence(
+            #     align=ff_align, sequence=self.query_subseq)
+            # new_align = mafft.run()
+            # merged_subseq = new_align.find_seq_by_id(self.query_subseq.id)
 
     def funfam_scan(self):
         """Returns the funfam scan results as :class:`cathpy.models.Scan`"""
