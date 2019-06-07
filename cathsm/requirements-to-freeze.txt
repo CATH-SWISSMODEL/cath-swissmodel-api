@@ -1,5 +1,6 @@
 requests
 colorlog
-pyxdg
-cathpy>=0.1.17
-
+xdg
+cathpy>=0.1.12
+biopython
+pyswagger
