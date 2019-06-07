@@ -19,6 +19,9 @@ class Model(object):
                 "failed to load {} from json file '{}': {}".format(cls, infile, err))
         return cls(**data)
 
+    def to_file(self, outfile):
+        json.dump(self.as_dict(), outfile)
+
     def as_dict(self, *, remove_meta=True):
         """Represents the model as a dict (removes optional keys that do not have values)"""
         data = self.__dict__
@@ -26,6 +29,20 @@ class Model(object):
             del data['meta']
         data = dict((k, v) for k, v in data.items() if v is not None)
         return data
+
+
+class SubmitSelectTemplate(Model):
+    """Represents the data required to submit a job to the CATH select template API."""
+
+    def __init__(self, *, query_id, query_sequence, task_id=None, meta=None):
+
+        if not meta:
+            meta = {}
+
+        self.query_id = str(query_id)
+        self.query_sequence = str(query_sequence)
+        self.task_id = task_id
+        self.meta = meta
 
 
 class SubmitAlignment(Model):
@@ -44,18 +61,4 @@ class SubmitAlignment(Model):
         self.auth_asym_id = auth_asym_id
         self.assembly_id = assembly_id
         self.project_id = project_id
-        self.meta = meta
-
-
-class SubmitSelectTemplate(Model):
-    """Represents the data required to submit a job to the SM Alignment API."""
-
-    def __init__(self, *, query_id, query_sequence, task_id=None, meta=None):
-
-        if not meta:
-            meta = {}
-
-        self.query_id = query_id
-        self.query_sequence = query_sequence
-        self.task_id = task_id
         self.meta = meta
