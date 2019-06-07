@@ -139,16 +139,15 @@ class CathSelectTemplateManager(ApiClientManagerBase):
         if not api_client:
             api_client = clients.CathSelectTemplateClient(**client_args)
 
+        self.task_uuid = None
         self.results_json = None
+        self.scan_hits = None
         super().__init__(api_client=api_client, **kwargs)
 
     def run(self):
 
         api = self.api_client
         config = self._config
-
-        LOG.info("IN_FILE:  %s", self.infile)
-        LOG.info("OUT_FILE: %s", self.outfile)
 
         LOG.info("Authenticating...")
         self.authenticate()
@@ -158,26 +157,28 @@ class CathSelectTemplateManager(ApiClientManagerBase):
         with open(self.infile) as infile:
             submit_data = SubmitSelectTemplate.load(infile)
 
-        LOG.info("Submitting data ... %s", str(submit_data.__dict__))
+        LOG.info("Submitting data ... ")
+        LOG.debug("data: %s", submit_data.__dict__)
         submit_r = api.submit(data=submit_data)
         LOG.debug("response: %s", submit_r)
-        task_id = submit_r['uuid']
+        self.task_uuid = submit_r['uuid']
 
-        LOG.info("Checking status of task <%s> ...", task_id)
+        LOG.info("Checking status of task <%s> ...", self.task_uuid)
         while True:
-            status_r = api.status(task_id)
+            status_r = api.status(self.task_uuid)
             status = status_r['status'].upper()
-            LOG.info("   status: %s", status)
+            message = status_r['message']
+            LOG.info("   [%s] %s", status, message)
             if status == 'SUCCESS':
                 break
             if status == 'ERROR':
-                LOG.error("Sequence search failed: %s", status_r['message'])
+                LOG.error("Sequence search failed: %s", message)
                 sys.exit(1)
             else:
                 time.sleep(self.sleep)
 
         LOG.info("Retrieving results ... ")
-        result_r = api.results(task_id)
+        result_r = api.results(self.task_uuid)
 
         LOG.debug("result: %s", str(result_r)[:100])
 
@@ -194,23 +195,9 @@ class CathSelectTemplateManager(ApiClientManagerBase):
         scan_result = funfam_resolved_scan.results[0]
         for hit in scan_result.hits:
             LOG.info("hit: %s", hit)
-            # get subsequence for "domain"
-            #query_subseq = query_sequence.apply_segments([[hit.start, hit.stop]])
 
-            # call endpoint that retrieves the alignment to best template in funfam hit
-
-            # download funfam alignment
-            #ff_align = download_funfam_alignment(hit.match)
-
-            # get best domain for funfam
-            # select_rep = SelectBlastRep(align=ff_align, ref_seq=query_subseq)
-            # best_template = select_rep.get_best_blast_hit()
-
-            # get pairwise alignment
-            # mafft = MafftAddSequence(
-            #     align=ff_align, sequence=self.query_subseq)
-            # new_align = mafft.run()
-            # merged_subseq = new_align.find_seq_by_id(self.query_subseq.id)
+    def hits(self):
+        assert self.task_uuid
 
     def funfam_scan(self):
         """Returns the funfam scan results as :class:`cathpy.models.Scan`"""
@@ -219,6 +206,10 @@ class CathSelectTemplateManager(ApiClientManagerBase):
     def funfam_resolved_scan(self):
         """Returns the resolved funfam scan results as :class:`cathpy.models.Scan`"""
         return self.api_client.funfam_resolved_scan()
+
+    def funfam_resolved_scan_hits(self):
+        """Returns the resolved funfam scan hits as [:class:`cathpy.models.ScanHit`]"""
+        return self.api_client.funfam_resolved_scan().results[0].hits
 
 
 class SMAlignmentManager(ApiClientManagerBase):
