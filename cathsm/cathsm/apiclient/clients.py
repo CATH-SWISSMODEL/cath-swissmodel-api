@@ -8,6 +8,9 @@ import json
 
 # non-core
 import requests
+from pyswagger import App, Security
+from pyswagger.contrib.client.requests import Client
+from pyswagger.utils import jp_compose
 from cathpy import funfhmmer
 
 # local
@@ -27,27 +30,26 @@ LOG = logging.getLogger(__name__)
 class ApiClientBase():
     """Base class for API clients."""
 
-    def __init__(self, *, base_url, headers=None):
+    def __init__(self, *, base_url, auth_url, swagger_url=None, api_token=None, headers=None):
         self.base_url = base_url
+
         if not headers:
             headers = {}
         self.headers = headers
 
+        self._api_token = None
+        if api_token:
+            self.set_token(api_token=api_token)
 
-class SubmitStatusResultsApiClient(ApiClientBase):
-    """Class for asynchronous API clients that follow a submit/status/result model."""
+        self._url_stems = {}
+        self.add_url_stem('auth', auth_url)
+        self.add_url_stem('swagger', swagger_url)
 
-    def __init__(self, *, base_url, auth_url, submit_url, status_url, results_url):
-        """Creates new client."""
-
-        super().__init__(base_url=base_url)
-
-        self.url_stems = {
-            "auth": auth_url,
-            "submit": submit_url,
-            "status": status_url,
-            "results": results_url,
-        }
+    def add_url_stem(self, action, url_stem):
+        if action in self._url_stems:
+            raise Exception(
+                'action {} already exists in url_stems'.format(action))
+        self._url_stems[action] = url_stem
 
     def get_url(self, stem, replacement_fields=None):
         """Returns the URL allowing placeholders to be replaced by data"""
@@ -55,7 +57,7 @@ class SubmitStatusResultsApiClient(ApiClientBase):
         if not replacement_fields:
             replacement_fields = {}
 
-        url = self.url_stems[stem]
+        url = self._url_stems[stem]
         url_parsed = url.format(**replacement_fields)
         full_url = self.base_url + url_parsed
 
@@ -110,6 +112,84 @@ class SubmitStatusResultsApiClient(ApiClientBase):
             LOG.error("failed to get json from response: %s", response)
             raise
         return response_data
+
+    def process_response(self, res):
+        """Hook to allow manipulation/inspection of all responses"""
+        return res
+
+    def set_token(self, *, api_token=None):
+        """Sets the token for the client."""
+        self._api_token = api_token
+        headers = {'Authorization': 'Token {}'.format(api_token)}
+        self.headers = headers
+
+    def authenticate(self, *, api_user=None, api_pass=None):
+        """
+        Authenticates the client.
+
+        Args:
+            api_user (str): username
+            api_pass (str): password
+
+        Returns:
+            token_id (str): API token
+        """
+
+        data = {'username': api_user, 'password': api_pass}
+
+        res = self.send_request(
+            method='POST',
+            action='auth',
+            data=data,
+            headers={'accept': 'application/json'})
+
+        LOG.debug("auth_response [%s]: %s", res.status_code, res.json())
+        response_data = res.json()
+        if 'token' in response_data:
+            token_id = response_data['token']
+            LOG.debug('Using token %s', token_id)
+        else:
+            raise AuthenticationError(
+                "failed to get token from response: {}".format(res.text))
+
+        self.set_token(api_token=token_id)
+        return token_id
+
+    def process_authenticate_response(self, res):
+        """Hook to allow manipulation/inspection of response to `authenticate` action"""
+        return res
+
+    def get_swagger(self):
+        """Gets an authenticated Swagger Client."""
+
+        swagger_url = self.get_url('swagger', replacement_fields={
+                                   'base_url': self.base_url})
+
+        # load Swagger resource file into App object
+        app = App._create_(swagger_url)
+
+        auth = Security(app)
+        # TODO: this isn't working...
+        # ValueError: Unknown security name: [api_key]
+        auth.update_with('api_key', self._api_token)
+
+        # init swagger client
+        client = Client(auth)
+
+        return app, client
+
+
+class SubmitStatusResultsApiClient(ApiClientBase):
+    """Class for asynchronous API clients that follow a submit/status/result model."""
+
+    def __init__(self, *, base_url, auth_url, swagger_url, submit_url, status_url, results_url):
+        """Creates new client."""
+
+        super().__init__(base_url=base_url, auth_url=auth_url, swagger_url=swagger_url)
+
+        self.add_url_stem('submit', submit_url)
+        self.add_url_stem('status', status_url)
+        self.add_url_stem('results', results_url)
 
     def submit(self, *, data=None, replacement_fields=None, status_success=201):
         """Submits the alignment data for modelling."""
@@ -167,52 +247,6 @@ class SubmitStatusResultsApiClient(ApiClientBase):
 
         return response_data
 
-    def set_token(self, *, api_token=None):
-        """Sets the token for the client."""
-
-        headers = {'Authorization': 'Token {}'.format(api_token)}
-        self.headers = headers
-
-    def authenticate(self, *, api_user=None, api_pass=None):
-        """
-        Authenticates the client.
-
-        Args:
-            api_user (str): username
-            api_pass (str): password
-
-        Returns:
-            token_id (str): API token
-        """
-
-        data = {'username': api_user, 'password': api_pass}
-
-        res = self.send_request(
-            method='POST',
-            action='auth',
-            data=data,
-            headers={'accept': 'application/json'})
-
-        LOG.debug("auth_response [%s]: %s", res.status_code, res.json())
-        response_data = res.json()
-        if 'token' in response_data:
-            token_id = response_data['token']
-            LOG.debug('Using token %s', token_id)
-        else:
-            raise AuthenticationError(
-                "failed to get token from response: {}".format(res.text))
-
-        self.set_token(api_token=token_id)
-        return token_id
-
-    def process_response(self, res):
-        """Hook to allow manipulation/inspection of all responses"""
-        return res
-
-    def process_authenticate_response(self, res):
-        """Hook to allow manipulation/inspection of response to `authenticate` action"""
-        return res
-
     def process_submit_response(self, res):
         """Hook to allow manipulation/inspection of response to `submit` action"""
         return res
@@ -236,6 +270,7 @@ class SMAlignmentClient(SubmitStatusResultsApiClient):
     """
 
     default_auth_url = '/api-token-auth/'
+    default_swagger_url = '/swagger/?format=openapi'
     default_submit_url = '/alignment/'
     default_status_url = '/alignment/{project_id}/status/'
     default_results_url = '/alignment/{project_id}/'
@@ -243,6 +278,7 @@ class SMAlignmentClient(SubmitStatusResultsApiClient):
     def __init__(self, *,
                  base_url=DEFAULT_SM_BASE_URL,
                  auth_url=default_auth_url,
+                 swagger_url=default_swagger_url,
                  submit_url=default_submit_url,
                  status_url=default_status_url,
                  results_url=default_results_url
@@ -252,6 +288,7 @@ class SMAlignmentClient(SubmitStatusResultsApiClient):
         args = {
             "base_url": base_url,
             "auth_url": auth_url,
+            "swagger_url": swagger_url,
             "submit_url": submit_url,
             "status_url": status_url,
             "results_url": results_url,
@@ -280,6 +317,7 @@ class CathSelectTemplateClient(SubmitStatusResultsApiClient):
     TODO: generate the API paths dynamically via OpenAPI spec(?)
     """
 
+    default_swagger_url = '/swagger/?format=openapi'
     default_auth_url = '/api/api-token-auth/'
     default_submit_url = '/api/select-template/'
     default_status_url = '/api/select-template/{task_id}/'
@@ -288,6 +326,7 @@ class CathSelectTemplateClient(SubmitStatusResultsApiClient):
     def __init__(self, *,
                  base_url=DEFAULT_CATH_BASE_URL,
                  auth_url=default_auth_url,
+                 swagger_url=default_swagger_url,
                  submit_url=default_submit_url,
                  status_url=default_status_url,
                  results_url=default_results_url
@@ -297,6 +336,7 @@ class CathSelectTemplateClient(SubmitStatusResultsApiClient):
         args = {
             "base_url": base_url,
             "auth_url": auth_url,
+            "swagger_url": swagger_url,
             "submit_url": submit_url,
             "status_url": status_url,
             "results_url": results_url,
