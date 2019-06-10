@@ -27,13 +27,20 @@ The code in `cathsm` provides client code that glues these API calls together.
 If the CATHAPI is up and running in the default location, then the following should work:
 
 ```sh
-./scripts/cathsm-api --user your_api_username --infile sequences.fasta -outdir ./output_pdb_dir
+./scripts/cathsm-api \
+  --user your_api_username \
+  --infile sequences.fasta \
+  --outdir ./output_pdb_dir
 ```
 
 If the CATHAPI is not running, then you can create a local server with the instructions below and add the `--api1_base=http://127.0.0.1:8000/` to override the default location of this API.
 
 ```sh
-./scripts/cathsm-api --user your_api_username --infile sequences.fasta -outdir ./output_pdb_dir --api1_base=http://127.0.0.1:8000
+./scripts/cathsm-api \
+  --user your_api_username \
+  --infile sequences.fasta \
+  --outdir ./output_pdb_dir \
+  --api1_base=http://127.0.0.1:8000
 ```
 
 ## Running the CATHAPI as a local server
