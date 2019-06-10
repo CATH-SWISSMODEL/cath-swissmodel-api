@@ -15,8 +15,8 @@ General layout:
 
 The project has two main APIs: 
 
-1. searching for template alignments against CATH Functional Families (FunFams)
-1. generating models for these alignments with SWISS-MODEL
+1. Search for template alignments against CATH
+1. Generate 3D models for these alignments with SWISS-MODEL
 
 The code in `cathapi` is the code used for the backend CATH API server.
 
@@ -35,7 +35,6 @@ If the CATHAPI is not running, then you can create a local server with the instr
 ```sh
 ./scripts/cathsm-api --user your_api_username --infile sequences.fasta -outdir ./output_pdb_dir --api1_base=http://127.0.0.1:8000
 ```
-
 
 ## Running the CATHAPI as a local server
 
@@ -107,9 +106,6 @@ CATHAPI_DEBUG=1 python3 manage.py runserver
 The CATHAPI server should now be available at:
 
 http://127.0.0.1:8000/
-
-
-
 
 
 ## API Overview
