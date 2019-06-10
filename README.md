@@ -13,9 +13,109 @@ General layout:
 └── python   Tests
 ```
 
-The project has four individual APIs, each with its own set of operations / endpoints. The table below provides a general summary, more details can be found in the admin directory.
+The project has two main APIs: 
 
-## API
+1. Search for template alignments against CATH
+1. Generate 3D models for these alignments with SWISS-MODEL
+
+The code in `cathapi` is the code used for the backend CATH API server.
+
+The code in `cathsm` provides client code that glues these API calls together. 
+
+## Generating 3D models from sequence
+
+If the CATHAPI is up and running in the default location, then the following should work:
+
+```sh
+./scripts/cathsm-api \
+  --user your_api_username \
+  --infile sequences.fasta \
+  --outdir ./output_pdb_dir
+```
+
+If the CATHAPI is not running, then you can create a local server with the instructions below and add the `--api1_base=http://127.0.0.1:8000/` to override the default location of this API.
+
+```sh
+./scripts/cathsm-api \
+  --user your_api_username \
+  --infile sequences.fasta \
+  --outdir ./output_pdb_dir \
+  --api1_base=http://127.0.0.1:8000
+```
+
+## Running the CATHAPI as a local server
+
+### Dependencies
+
+Install dependencies (Redis is used as a cache/message broker):
+
+```sh
+# Ubuntu
+sudo apt-get install redis 
+
+# CentOS / RedHat
+sudo yum install redis
+```
+Run the service in the background.
+
+```sh
+sudo systemctl enable redis
+sudo systemctl start redis
+```
+
+### Python environment
+
+Setup a local python virtual environment; install dependencies.
+
+```sh
+cd cath-swissmodel-api/cathapi
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+```
+
+### Create a unique secret key
+
+```sh
+cd cath-swissmodel-api/cathapi
+date | md5sum > secret_key.txt
+```
+
+### Run tests
+
+```sh
+cd cath-swissmodel-api/cathapi && source venv/bin/activate
+pytest
+```
+
+### Update the local database
+
+```sh
+cd cath-swissmodel-api/cathapi && source venv/bin/activate
+python3 manage.py makemigrations
+python3 manage.py migrate
+```
+
+### Start a Celery worker (to process jobs)
+
+```sh
+cd cath-swissmodel-api/cathapi && source venv/bin/activate
+CATHAPI_DEBUG=1 celery -A cathapi worker
+```
+
+### Start a local API server
+
+```sh
+cd cath-swissmodel-api/cathapi && source venv/bin/activate
+CATHAPI_DEBUG=1 python3 manage.py runserver
+```
+
+The CATHAPI server should now be available at:
+
+http://127.0.0.1:8000/
+
+
+## API Overview
 
 **API 1: Get3DTemplate (UCL)** -- For a given query protein sequence, identify the most appropriate known structural domain to use for the 3D structural modelling.
 
@@ -41,34 +141,6 @@ The project has four individual APIs, each with its own set of operations / endp
 |---|---|
 | protein sequence (FASTA) | UniProtKB accessions |
 
-### Getting started
-
-Setup a local python virtual environment; install dependencies.
-
-```sh
-$ cd cath-swissmodel-api/cathapi
-$ python3 -m venv venv
-$ source venv/bin/activate
-$ pip install -e .
-```
-
-### Starting a local server
-
-```sh
-$ cd cath-swissmodel-api/cathapi
-$ source venv/bin/activate
-$ python ./manage.py runserver
-```
-
-http://127.0.0.1:8000/
-
-### Running tests
-
-```sh
-$ cd cath-swissmodel-api/cathapi
-$ source venv/bin/activate
-$ python ./manage.py test
-```
 
 ## Useful Links
 
