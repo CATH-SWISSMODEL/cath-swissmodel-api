@@ -7,7 +7,11 @@ CLI tool to search for template structures for modelling
 # core
 import argparse
 import logging
+import os
+import re
+import string
 import tempfile
+from multiprocessing import Pool
 
 # non-core
 import requests
@@ -15,6 +19,8 @@ from Bio import SeqIO
 
 # local
 from cathsm.apiclient import managers, models, clients
+
+DEFAULT_MAX_WORKERS = 5
 
 # logging
 logging.basicConfig(
@@ -34,6 +40,8 @@ parser.add_argument('--outdir', '-o', dest='outdir', type=str, required=True,
                     help='output directory')
 parser.add_argument('--user', '-u', dest='user', type=str, required=False,
                     help='API user')
+parser.add_argument('--max_workers', dest='max_workers', type=int, default=DEFAULT_MAX_WORKERS,
+                    help='Number of jobs to process in parallel')
 parser.add_argument('--api1_base', dest='api1_base', type=str, required=False,
                     default=None,
                     help='override base url for API1')
@@ -42,27 +50,44 @@ parser.add_argument('--api2_base', dest='api2_base', type=str, required=False,
                     help='override base url for API2')
 
 
-def process_sequence(seq, seq_count):
+def process_sequence(seq_count, seq_id, seq_str, outdir):
     """Processes a query sequence"""
 
-    LOG.info("Searching for template structures ... ")
+    os.chdir(outdir)
+
+    log = logging.getLogger('process_sequence_{}'.format(seq_count))
+    fh = logging.FileHandler('process.log')
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    log.addHandler(fh)
+
+    log.info("SEQUENCE {}: {} ({} residues)".format(
+        seq_count, seq_id, len(seq_str)))
+
+    char_width = 80
+    seq_lines = [seq_str[i:i+char_width]
+                 for i in range(0, len(seq_str), char_width)]
+    for seq_line in seq_lines:
+        log.info("{}".format(seq_line))
+
+    log_br(log)
+    log.info("Searching for template structures ... ")
 
     api1submit = models.SubmitSelectTemplate(
-        query_id=seq.id, query_sequence=seq.seq)
-
-    api1file = tempfile.NamedTemporaryFile(
-        mode='w', encoding='utf-8', delete=False)
-
-    with api1file as api1fh:
-        api1submit.to_file(api1fh)
+        query_id=seq_id, query_sequence=seq_str)
 
     api1 = managers.CathSelectTemplateManager(
         base_url=args.api1_base,
-        infile=api1file.name,
-        outfile='foo',
+        submit_data=api1submit,
         api_user=args.user,
+        logger=log,
     )
     api1.run()
+    task_uuid = api1.task_uuid
+
+    log_br(log)
 
     # swagger_app, swagger_client = api1.api_client.get_swagger()
     # hit_operation_id = 'select-template_resolved_hits_read'  # TODO: this is nasty
@@ -73,43 +98,49 @@ def process_sequence(seq, seq_count):
 
     # TODO: abstract this away to clients / managers / swagger? ...
     api1_base = args.api1_base
-    task_uuid = api1.task_uuid
     headers = {'Authorization': 'Token ' + api1.api_token}
 
+    log.info("Getting resolved hit info ...")
     hits_url = '{api1_base}/api/select-template/{task_uuid}/resolved_hits'.format(
         api1_base=api1_base, task_uuid=task_uuid)
-    LOG.info("url: %s", hits_url)
+    log.info("GET %s", hits_url)
     resp = requests.get(hits_url, headers=headers)
     resp.raise_for_status()
     hits = resp.json()
+    log.info("  ... retrieved %s resolved hits", len(hits))
+    log_br(log)
 
     # hits = managers.GetSelectTemplateHits(task_uuid=api1.task_uuid)
     # hits = api1.funfam_resolved_scan_hits()
 
-    LOG.info("  ... done (found X hits): %s", len(hits))
-
     for hit_count, hit in enumerate(hits, 1):
 
+        log.info("SEQUENCE %s, HIT %s [%s]: FunFam '%s': %s",
+                 seq_count, hit_count, hit['query_range'], hit['ff_id'], hit['ff_name'])
+
+        log.info("Getting template alignments ...")
         aln_url = '{api1_base}/api/select-template/hit/{hit_uuid}/alignments'.format(
             api1_base=api1_base, hit_uuid=hit['uuid'])
-        LOG.info("url: %s", aln_url)
+        log.info("GET %s", aln_url)
         resp = requests.get(aln_url, headers=headers)
         resp.raise_for_status()
         alns = resp.json()
+        log.info("  ... retrieved %s template alignments", len(alns))
+        log_br(log)
+
+        log_prefix = 'HIT{}'.format(hit_count)
         aln = alns[0]
 
-        LOG.info("SEQUENCE %s, HIT %s [%s]: FunFam '%s': %s",
-                 seq_count, hit_count, hit['query_range'], hit['ff_id'], hit['ff_name'])
+        log.info("%s: Modelling region against template %s, %s (offset %s) ... ",
+                 log_prefix, aln['pdb_id'], aln['auth_asym_id'], aln['template_seqres_offset'])
 
-        LOG.info("Modelling region against template %s, %s (offset %s) ... ",
-                 aln['pdb_id'], aln['auth_asym_id'], aln['template_seqres_offset'])
-
-        LOG.info("%10s %8s: %s", 'QUERY',
+        log.info("%10s %8s: %s", 'QUERY',
                  hit['query_range'],
-                 aln['template_sequence'], )
-        LOG.info("%10s %8s: %s", '{}, {}'.format(aln['pdb_id'], aln['auth_asym_id']),
+                 aln['target_sequence'], )
+        log.info("%10s %8s: %s", '{}, {}'.format(aln['pdb_id'], aln['auth_asym_id']),
                  aln['template_seqres_offset'],
                  aln['template_sequence'])
+        log_br(log)
 
         api2submit = models.SubmitAlignment(
             target_sequence=aln['target_sequence'],
@@ -119,33 +150,60 @@ def process_sequence(seq, seq_count):
             auth_asym_id=aln['auth_asym_id'],
         )
 
-        api2file = tempfile.NamedTemporaryFile(
-            mode='w', encoding='utf-8', delete=False)
-
-        with api2file as api2fh:
-            api2submit.to_file(api2fh)
-
         api2 = managers.SMAlignmentManager(
-            infile=api2file.name,
+            submit_data=api2submit,
             outfile='foo',
             api_user=args.user,
+            logger=log,
         )
         api2.run()
+        log_br(log)
 
 
-def run(*, infile):
+def run(*, infile, outdir, max_workers):
     """Runs the main application"""
 
     LOG.info("Parsing sequences from %s", infile)
-
+    log_hr()
+    sequences = []
     seq_count = 0
     for seq in SeqIO.parse(infile, "fasta"):
         seq_count += 1
         LOG.info("SEQUENCE %d: '%s' (%d residues)",
                  seq_count, seq.id, len(seq))
-        process_sequence(seq, seq_count)
+        sequences.extend([seq])
+
+    re_safe = re.compile(r'[\W]+', re.UNICODE)
+    process_args = []
+    for seq in sequences:
+
+        safe_dirname = re_safe.sub('', seq.id)
+        process_outdir = os.path.join(outdir, safe_dirname)
+        if not os.path.exists(process_outdir):
+            os.makedirs(process_outdir)
+
+        process_args.extend([seq_count, seq.id, seq.seq, process_outdir])
+
+    with Pool(max_workers) as p:
+        p.map(process_sequence, process_args)
+
+    LOG.info("DONE")
+
+
+def log_br(log=None):
+    if not log:
+        log = LOG
+    log.info('')
+
+
+def log_hr(log=None):
+    if not log:
+        log = LOG
+    log.info('')
+    log.info('-'*80)
+    log.info('')
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    run(infile=args.infile)
+    run(infile=args.infile, outdir=args.outdir, max_workers=args.max_workers)

@@ -20,10 +20,17 @@ LOG = logging.getLogger(__name__)
 
 class ApiClientManagerBase(object):
 
-    def __init__(self, *, infile, outfile, api_client,
+    def __init__(self, *, api_client,
                  sleep=5, log_level=logging.INFO,
+                 infile=None, outfile=None, submit_data=None,
                  api_user=None, api_password=None, api_token=None,
-                 config=None, config_section=None, clear_config=False):
+                 config=None, config_section=None, clear_config=False,
+                 logger=None):
+
+        if not logger:
+            logger = LOG
+
+        self.log = logger
 
         if not config_section:
             config_section = self.__class__.__name__
@@ -34,11 +41,13 @@ class ApiClientManagerBase(object):
             config.section = config_section
 
         if clear_config:
-            LOG.info("Clearing existing config for section: '%s'", config.section)
+            self.log.info(
+                "Clearing existing config for section: '%s'", config.section)
             config.delete_section()
 
         self.infile = infile
         self.outfile = outfile
+        self.submit_data = submit_data
         self.sleep = sleep
         self.log_level = log_level
 
@@ -72,7 +81,7 @@ class ApiClientManagerBase(object):
             level = logging.WARNING
         cls.addLogger(level=level)
 
-        passthrough_args = ('infile', 'outfile', 'sleep', 'clear_config',
+        passthrough_args = ('infile', 'outfile', 'submit_data', 'sleep', 'clear_config',
                             'api_token', 'api_user', 'api_password')
 
         kwargs = {k: v for k, v in vars(args).items() if k in passthrough_args}
@@ -107,18 +116,19 @@ class ApiClientManagerBase(object):
         config = self._config
 
         if self.api_token is not None:
-            LOG.info("Setting API token ... ")
+            self.log.info("Setting API token ... ")
             api_token = self.api_token
         else:
-            LOG.info("Authenticating via user/pass... (token_id not provided) ")
-            LOG.debug("user: %s", self.api_user)
+            self.log.info(
+                "Authenticating via user/pass... (token_id not provided) ")
+            self.log.debug("user: %s", self.api_user)
             api_token = api.authenticate(
                 api_user=self.api_user, api_pass=self.api_password)
 
-        LOG.debug("Saving API token to config file")
+        self.log.debug("Saving API token to config file")
         config['api_token'] = api_token
 
-        LOG.debug("Setting API token in client")
+        self.log.debug("Setting API token in client")
         api.set_token(api_token=api_token)
 
 
@@ -149,52 +159,49 @@ class CathSelectTemplateManager(ApiClientManagerBase):
         api = self.api_client
         config = self._config
 
-        LOG.info("Authenticating...")
+        self.log.info("Authenticating...")
         self.authenticate()
-        LOG.info("  ... got token: %s", self.api_token)
+        self.log.info("  ... got token: %s", self.api_token)
 
-        LOG.info("Loading data from file '%s' ...", self.infile)
-        with open(self.infile) as infile:
-            submit_data = SubmitSelectTemplate.load(infile)
+        if not self.submit_data:
+            self.log.debug("Loading data from file '%s' ...", self.infile)
+            with open(self.infile) as infile:
+                self.submit_data = SubmitSelectTemplate.load(infile)
 
-        LOG.info("Submitting data ... ")
-        LOG.debug("data: %s", submit_data.__dict__)
-        submit_r = api.submit(data=submit_data)
-        LOG.debug("response: %s", submit_r)
+        self.log.info("Submitting data ... ")
+        self.log.debug("data: %s", self.submit_data.__dict__)
+        submit_r = api.submit(data=self.submit_data)
+        self.log.debug("response: %s", submit_r)
         self.task_uuid = submit_r['uuid']
 
-        LOG.info("Checking status of task <%s> ...", self.task_uuid)
+        self.log.info("Checking status of task <%s> ...", self.task_uuid)
         while True:
             status_r = api.status(self.task_uuid)
             status = status_r['status'].upper()
             message = status_r['message']
-            LOG.info("   [%s] %s", status, message)
+            self.log.info("   [%s] %s", status, message)
             if status == 'SUCCESS':
                 break
             if status == 'ERROR':
-                LOG.error("Sequence search failed: %s", message)
+                self.log.error("Sequence search failed: %s", message)
                 sys.exit(1)
             else:
                 time.sleep(self.sleep)
 
-        LOG.info("Retrieving results ... ")
+        self.log.info("Retrieving scan results ... ")
         result_r = api.results(self.task_uuid)
 
-        LOG.debug("result: %s", str(result_r)[:100])
-
+        self.log.debug("result: %s", str(result_r)[:100])
         funfam_resolved_scan = self.funfam_resolved_scan()
 
-        LOG.info("Resolved Funfam Matches:")
-        for line in funfam_resolved_scan.as_tsv().split('\n'):
-            LOG.info("  %s", line)
+        self.log.info("Resolved Funfam Matches:")
+        hit_lines = funfam_resolved_scan.as_tsv().strip().split('\n')
+        for hit_count, line in enumerate(hit_lines, 0):
+            self.log.info("%-3s %s", hit_count if hit_count > 0 else '', line)
 
         if not funfam_resolved_scan.results:
             raise NoResultsError(
                 "failed to get any results from funfam_resolved_scan")
-
-        scan_result = funfam_resolved_scan.results[0]
-        for hit in scan_result.hits:
-            LOG.info("hit: %s", hit)
 
     def hits(self):
         assert self.task_uuid
@@ -227,33 +234,31 @@ class SMAlignmentManager(ApiClientManagerBase):
         api = self.api_client
         config = self._config
 
-        LOG.info("IN_FILE:  %s", self.infile)
-        LOG.info("OUT_FILE: %s", self.outfile)
-
         self.authenticate()
 
-        LOG.info("Loading data from file '%s' ...", self.infile)
-        with open(self.infile) as infile:
-            submit_data = SubmitAlignment.load(infile)
+        self.log.info("Submitting data ... ")
+        if not self.submit_data:
+            self.log.debug("Loading data from file '%s' ...", self.infile)
+            with open(self.infile) as infile:
+                self.submit_data = SubmitSelectTemplate.load(infile)
 
-        LOG.info("Submitting data ... ")
-        submit_r = api.submit(data=submit_data)
+        submit_r = api.submit(data=self.submit_data)
         project_id = submit_r['project_id']
 
-        LOG.info("Checking status of project <%s> ...", project_id)
+        self.log.info("Checking status of project <%s> ...", project_id)
         while True:
             status_r = api.status(project_id)
             status = status_r['status']
-            LOG.info("   status: %s", status)
+            self.log.info("   status: %s", status)
             if status == 'COMPLETED':
                 break
             if status == 'FAILED':
-                LOG.error("Modelling failed: %s", status_r['message'])
+                self.log.error("Modelling failed: %s", status_r['message'])
                 sys.exit(1)
             else:
                 time.sleep(self.sleep)
 
-        LOG.info("Retrieving results ... ")
+        self.log.info("Retrieving results ... ")
         result_r = api.results(project_id)
 
         def truncate_string(in_str):
@@ -263,9 +268,9 @@ class SMAlignmentManager(ApiClientManagerBase):
 
         truncated_result = {k: truncate_string(
             v) for k, v in result_r.items()}
-        LOG.debug("result: %s", truncated_result)
+        self.log.debug("result: %s", truncated_result)
         coords = result_r['coordinates']
 
-        LOG.info("Writing coordinates to %s", self.outfile)
+        self.log.info("Writing coordinates to %s", self.outfile)
         with open(self.outfile, 'w') as outfile:
             outfile.write(coords)
