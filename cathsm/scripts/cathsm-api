@@ -38,7 +38,7 @@ parser.add_argument('--in', '-i', dest='infile', type=str, required=True,
                     help='query sequence (FASTA)')
 parser.add_argument('--outdir', '-o', dest='outdir', type=str, required=True,
                     help='output directory')
-parser.add_argument('--user', '-u', dest='user', type=str, required=False,
+parser.add_argument('--user', '-u', dest='user', type=str, required=True,
                     help='API user')
 parser.add_argument('--max_workers', dest='max_workers', type=int, default=DEFAULT_MAX_WORKERS,
                     help='Number of jobs to process in parallel')
@@ -49,10 +49,13 @@ parser.add_argument('--api2_base', dest='api2_base', type=str, required=False,
                     default=None,
                     help='override base url for API2')
 
+parser.add_argument('--startseq', dest='startseq', type=int, default=1, 
+                    help='choose the sequence to start from') 
 
-def process_sequence(seq_count, seq_id, seq_str, outdir):
+def process_sequence(job_args):
     """Processes a query sequence"""
 
+    seq_count, seq_id, seq_str, outdir, user_id = list(job_args)
     os.chdir(outdir)
 
     log = logging.getLogger('process_sequence_{}'.format(seq_count))
@@ -81,7 +84,7 @@ def process_sequence(seq_count, seq_id, seq_str, outdir):
     api1 = managers.CathSelectTemplateManager(
         base_url=args.api1_base,
         submit_data=api1submit,
-        api_user=args.user,
+        api_user=user_id,
         logger=log,
     )
     api1.run()
@@ -128,6 +131,10 @@ def process_sequence(seq_count, seq_id, seq_str, outdir):
         log.info("  ... retrieved %s template alignments", len(alns))
         log_br(log)
 
+        if not alns:
+            log.warning('Found no valid template alignments from hit %s (no CATH domains?). Skipping.', hit['ff_id'])
+            continue
+
         log_prefix = 'HIT{}'.format(hit_count)
         aln = alns[0]
 
@@ -150,42 +157,46 @@ def process_sequence(seq_count, seq_id, seq_str, outdir):
             auth_asym_id=aln['auth_asym_id'],
         )
 
+        pdb_out_id = re.sub('[\W]+', '', seq_id)
+
         api2 = managers.SMAlignmentManager(
             submit_data=api2submit,
-            outfile='foo',
-            api_user=args.user,
+            outfile="{}.pdb".format(pdb_out_id),
+            api_user=user_id,
             logger=log,
         )
         api2.run()
         log_br(log)
 
 
-def run(*, infile, outdir, max_workers):
+def run(*, infile, outdir, max_workers, api_user, startseq=1):
     """Runs the main application"""
 
     LOG.info("Parsing sequences from %s", infile)
     log_hr()
     sequences = []
-    seq_count = 0
     for seq in SeqIO.parse(infile, "fasta"):
-        seq_count += 1
-        LOG.info("SEQUENCE %d: '%s' (%d residues)",
-                 seq_count, seq.id, len(seq))
+        LOG.info("SEQUENCE: '%s' (%d residues)",
+                 seq.id, len(seq))
         sequences.extend([seq])
 
     re_safe = re.compile(r'[\W]+', re.UNICODE)
     process_args = []
-    for seq in sequences:
+    for seq_count, seq in enumerate(sequences[startseq-1:], startseq):
 
         safe_dirname = re_safe.sub('', seq.id)
-        process_outdir = os.path.join(outdir, safe_dirname)
+        process_outdir = os.path.abspath(os.path.join(outdir, safe_dirname))
+
         if not os.path.exists(process_outdir):
             os.makedirs(process_outdir)
 
-        process_args.extend([seq_count, seq.id, seq.seq, process_outdir])
+        process_args.extend([[seq_count, seq.id, seq.seq, process_outdir, api_user]])
 
-    with Pool(max_workers) as p:
-        p.map(process_sequence, process_args)
+    #with Pool(max_workers) as p:
+    #    p.map(process_sequence, process_args)
+    
+    for pargs in process_args:
+        process_sequence(pargs)
 
     LOG.info("DONE")
 
@@ -206,4 +217,5 @@ def log_hr(log=None):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    run(infile=args.infile, outdir=args.outdir, max_workers=args.max_workers)
+    run(infile=args.infile, outdir=args.outdir, max_workers=args.max_workers, 
+            api_user=args.user, startseq=args.startseq)
