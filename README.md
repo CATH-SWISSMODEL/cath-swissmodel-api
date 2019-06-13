@@ -4,26 +4,31 @@
 
 This repository is here to help development relating to the CATH / SWISS-MODEL API (2018 ELIXIR Implementation Study).
 
-General layout:
+## Overview
+
+The project provides a pipeline that models 3D structures from protein sequence. This effectively glues together APIs from two different bioinformatics resources (CATH and SWISS-MODEL): 
+
+ * **API1**: Search a protein sequence against **CATH** to identify template alignments  
+ * **API2**: Use **SWISS-MODEL** to generate 3D models for these alignments
+
+Important parts of this repository:
 
 ```
-├── cathsm   Code for the CATH-SM API clients
-├── cathapi  Code for backend CATH API (API1)
-└── docs     general project admin
+├── cathsm   Client code for the CATH / SWISS-MODEL pipeline
+├── cathapi  Code for backend CATH API (**API1**)
+├── docs     General project admin
+└── tests    General project tests
 ```
 
-The project has two main APIs: 
+The code in `cathsm` is intended to provide simple interaction with the full pipeline.
 
-1. Search for template alignments against CATH
-1. Generate 3D models for these alignments with SWISS-MODEL
-
-The code in `cathapi` is the code used for the backend CATH API server.
-
-The code in `cathsm` provides client code that glues these API calls together. 
+The code in `cathapi` is the code used for the backend CATH API server (**API1**). This would
+normally be running behind a firewall at CATH and therefore can be safely ignored for anything 
+other than development purposes.
 
 ## Generating 3D models from sequence
 
-If the CATHAPI is up and running in the default location, then the following should work:
+Assuming **API1** is up and running in the expected location, then the following should work:
 
 ```sh
 ./scripts/cathsm-api \
@@ -32,7 +37,10 @@ If the CATHAPI is up and running in the default location, then the following sho
   --outdir ./output_pdb_dir
 ```
 
-If the CATHAPI is not running, then you can create a local server with the instructions below and add the `--api1_base=http://127.0.0.1:8000/` to override the default location of this API.
+If **API1** is **not** running in the expected location (or you are developing/testing the backend server), 
+the instructions below provide the steps involved in getting an instance of this server up and running 
+on a local machine. After setting up a local server, you can point the pipeline at this local server by
+adding `--api1_base=http://127.0.0.1:8000/`
 
 ```sh
 ./scripts/cathsm-api \
@@ -42,7 +50,10 @@ If the CATHAPI is not running, then you can create a local server with the instr
   --api1_base=http://127.0.0.1:8000
 ```
 
-## Running the CATHAPI as a local server
+NB: this script assumes the same user account `<your_api_username>` has already been registered with 
+both **API1** and **API2**.
+
+## Running a local instance of **API1**
 
 ### Dependencies
 
@@ -64,7 +75,7 @@ sudo systemctl start redis
 
 ### Python environment
 
-Setup a local python virtual environment; install dependencies.
+Setup a local python virtual environment and install dependencies.
 
 ```sh
 cd cath-swissmodel-api/cathapi
@@ -109,7 +120,7 @@ cd cath-swissmodel-api/cathapi && source venv/bin/activate
 CATHAPI_DEBUG=1 python3 manage.py runserver
 ```
 
-The CATHAPI server should now be available at:
+An instance of **API1** should now be available at:
 
 http://127.0.0.1:8000/
 
