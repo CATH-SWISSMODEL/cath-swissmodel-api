@@ -9,8 +9,7 @@ General layout:
 ```
 ├── cathsm   Code for the CATH-SM API clients
 ├── cathapi  Code for backend CATH API (API1)
-├── docs     general project admin
-└── python   Tests
+└── docs     general project admin
 ```
 
 The project has four individual APIs, each with its own set of operations / endpoints. The table below provides a general summary, more details can be found in the admin directory.
