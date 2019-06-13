@@ -1,6 +1,6 @@
 atomicwrites==1.2.1
 attrs==18.2.0
-cathpy==0.0.1
+cathpy>=0.1.13
 certifi==2018.11.29
 chardet==3.0.4
 idna==2.8
