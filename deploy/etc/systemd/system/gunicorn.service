@@ -6,7 +6,7 @@ After=network.target
 User=ucbcisi
 Group=nginx
 WorkingDirectory=/opt/cath-swissmodel-api/cathapi
-ExecStart=/opt/cath-swissmodel-api/cathapi/venv/bin/gunicorn --workers 3 --bind unix:/export/cath-swissmodel-api/cathapi/cathapi.sock cathapi.wsgi:application
+ExecStart=/opt/cath-swissmodel-api/cathapi/venv/bin/gunicorn --workers 3 --bind unix:/opt/cath-swissmodel-api/cathapi/cathapi.sock cathapi.wsgi:application
 
 [Install]
 WantedBy=multi-user.target

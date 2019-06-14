@@ -1,0 +1,16 @@
+[Unit]
+Description=Flower Service
+After=network.target
+
+[Service]
+Type=simple
+User=celery
+Group=celery
+PermissionsStartOnly=true
+WorkingDirectory=/opt/flower
+ExecStart=/bin/sh -c 'PYTHONPATH=/opt/cath-swissmodel-api/cathapi \
+    /opt/cath-swissmodel-api/cathapi/venv/bin/celery flower -A cathapi --port=5555'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
