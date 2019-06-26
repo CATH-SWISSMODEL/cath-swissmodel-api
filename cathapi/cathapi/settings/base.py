@@ -39,7 +39,7 @@ del secret_files
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [".cathdb.info", "localhost",
+ALLOWED_HOSTS = [".cathdb.info", "orengoapi01", "localhost",
                  "127.0.0.1", "127.0.0.1:8000", "0.0.0.0"]
 
 # SENTRY (logging)
@@ -125,11 +125,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cathapi.wsgi.application'
 
 CORS_ORIGIN_WHITELIST = (
-    'localhost:3000',
-    'localhost:8000',
-    '127.0.0.1:8000',
-    'cathdb.info',
-    'expasy.org',
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://orengoapi01:8000',
+    'http://api01.cathdb.info',
+    'https://expasy.org',
 )
 
 # Database

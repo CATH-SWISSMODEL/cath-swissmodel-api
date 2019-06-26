@@ -81,7 +81,7 @@ Setup a local python virtual environment and install dependencies.
 cd cath-swissmodel-api/cathapi
 python3 -m venv venv
 source venv/bin/activate
-pip install -e .
+pip install -r requirements-to-freeze.txt
 ```
 
 ### Create a unique secret key

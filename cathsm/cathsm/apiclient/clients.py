@@ -12,6 +12,7 @@ from pyswagger import App, Security
 from pyswagger.contrib.client.requests import Client
 from pyswagger.utils import jp_compose
 from cathpy import funfhmmer
+import cathpy.models
 
 # local
 from cathsm.apiclient.errors import AuthenticationError, NoResultsError
@@ -367,16 +368,28 @@ class CathSelectTemplateClient(SubmitStatusResultsApiClient):
         """
         cathsm_results_data = super().results(
             replacement_fields={"task_id": task_id})
-        try:
-            results_data = json.loads(cathsm_results_data['results_json'])
-        except:
-            LOG.error(
-                "failed to deserialise JSON string from cathsm 'results_json'")
-            raise
 
-        LOG.debug("results_data: %s", str(results_data)[:100])
+        if not cathsm_results_data['results_json']:
+            LOG.warning('failed to get any results (results_json is empty): %s', cathsm_results_data)
+            # TODO: trying to indicate a result that corresponds to zero funfam
+            # matches. Should be able to use valid query_fasta/cath_version 
+            # and funfam_scan=None...
+            results_data = {
+                'query_fasta': None, 
+                'funfam_scan': None, 
+                'funfam_resolved_scan': None,
+                'cath_version': None,
+            }
+        else:
+            results_data = json.loads(cathsm_results_data['results_json'])
+            LOG.debug("results_data: %s", str(results_data)[:100])
+
         self._result_response = funfhmmer.ResultResponse(**results_data)
         return cathsm_results_data
+
+    def process_results_response(self, res):
+        LOG.info("results.response: %s", res)
+        return res
 
     @property
     def result_response(self):

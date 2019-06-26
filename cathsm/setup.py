@@ -23,7 +23,6 @@ setup(
         'xdg',
 #        'getpass',
         'requests',
-	'pyxdg',
     ],
     classifiers=(
         "Programming Language :: Python :: 3",
