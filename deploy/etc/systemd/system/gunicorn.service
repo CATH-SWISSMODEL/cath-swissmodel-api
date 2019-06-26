@@ -1,12 +1,24 @@
 [Unit]
 Description=gunicorn daemon
+Requires=gunicorn.socket
 After=network.target
 
 [Service]
+PIDFile=/run/gunicorn/pid
 User=ucbcisi
 Group=nginx
+RuntimeDirectory=gunicorn
 WorkingDirectory=/opt/cath-swissmodel-api/cathapi
-ExecStart=/opt/cath-swissmodel-api/cathapi/venv/bin/gunicorn --workers 3 --bind unix:/opt/cath-swissmodel-api/cathapi/cathapi.sock cathapi.wsgi:application
+ExecStart=/opt/cath-swissmodel-api/cathapi/venv/bin/gunicorn --pid /run/gunicorn/pid \
+	--workers 3 \
+        --log-level debug \
+	--error-logfile /opt/cath-swissmodel-api/cathapi/gunicorn.cathapi.error \
+	--access-logfile /opt/cath-swissmodel-api/cathapi/gunicorn.cathapi.access \
+	--bind unix:/opt/cath-swissmodel-api/cathapi/cathapi.sock \
+	cathapi.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target

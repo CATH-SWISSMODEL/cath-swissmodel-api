@@ -1,0 +1,10 @@
+[Unit]
+Description=gunicorn socket
+
+[Socket]
+#ListenStream=/run/gunicorn/socket
+ListenStream=/opt/cath-swissmodel-api/cathapi/cathapi.sock
+
+[Install]
+WantedBy=sockets.target
+
