@@ -16,5 +16,14 @@ services:
     restart: always
     build:
        context: ./redis/
-    #celery
+  celery:
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./Docker/cathapi/Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - CATHAPI_DEBUG=1
+    command: celery -A cathapi worker
     #django
