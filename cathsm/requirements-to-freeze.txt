@@ -1,6 +1,6 @@
 requests
 colorlog
 xdg
-cathpy>=0.1.12
+cathpy==0.2.1
 biopython
 pyswagger

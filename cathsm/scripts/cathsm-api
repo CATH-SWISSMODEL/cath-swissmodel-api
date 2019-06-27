@@ -29,6 +29,8 @@ logging.basicConfig(
     datefmt='%d-%m-%Y %H:%M:%S')
 LOG = logging.getLogger(__name__)
 
+DEFAULT_API1_BASE = 'api01.cathdb.info'
+DEFAULT_API2_BASE = 'beta.swissmodel.expasy.org'
 CATHAPI_OPENAPI_URL = 'http://{:api1_base}/swagger/?format=openapi'
 SM_OPENAPI_URL = 'http://{:api2_base}/swagger/?format=openapi'
 
@@ -42,18 +44,18 @@ parser.add_argument('--user', '-u', dest='user', type=str, required=True,
                     help='API user')
 parser.add_argument('--max_workers', dest='max_workers', type=int, default=DEFAULT_MAX_WORKERS,
                     help='Number of jobs to process in parallel')
-parser.add_argument('--api1_base', dest='api1_base', type=str, required=False,
-                    default=None,
+parser.add_argument('--api1_base', dest='api1_base', type=str, default=DEFAULT_API1_BASE, 
+                    required=False,
                     help='override base url for API1')
-parser.add_argument('--api2_base', dest='api2_base', type=str, required=False,
-                    default=None,
+parser.add_argument('--api2_base', dest='api2_base', type=str, default=DEFAULT_API2_BASE,
+                    required=False,
                     help='override base url for API2')
 
 parser.add_argument('--startseq', dest='startseq', type=int, default=1, 
                     help='choose the sequence to start from') 
 
 def process_sequence(job_args):
-    """Processes a query sequence"""
+    """Processes an individual query sequence"""
 
     seq_count, seq_id, seq_str, outdir, user_id = list(job_args)
     os.chdir(outdir)
@@ -92,6 +94,9 @@ def process_sequence(job_args):
 
     log_br(log)
 
+    # TODO: abstract the following chunk of hard coded URLs
+    # to clients / managers / swagger? ...
+
     # swagger_app, swagger_client = api1.api_client.get_swagger()
     # hit_operation_id = 'select-template_resolved_hits_read'  # TODO: this is nasty
     # req, resp = swagger_app.op[hit_operation_id](
@@ -99,7 +104,6 @@ def process_sequence(job_args):
     # req.produce('application/json')
     # hits = swagger_client.request((req, resp)).data
 
-    # TODO: abstract this away to clients / managers / swagger? ...
     api1_base = args.api1_base
     headers = {'Authorization': 'Token ' + api1.api_token}
 

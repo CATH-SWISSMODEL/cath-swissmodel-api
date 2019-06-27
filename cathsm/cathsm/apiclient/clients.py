@@ -22,7 +22,7 @@ DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
 # currently you have to start this yourself...
 # cd ../cathapi && python3 manage.py runserver
 #DEFAULT_CATH_BASE_URL = 'http://localhost:8000'
-DEFAULT_CATH_BASE_URL = 'http://www.cathdb.info/cathsm'
+DEFAULT_CATH_BASE_URL = 'http://api01.cathdb.info'
 
 
 LOG = logging.getLogger(__name__)
