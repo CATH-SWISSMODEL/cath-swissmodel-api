@@ -12,18 +12,22 @@ version: "3.3"
 #volumes:
 
 services:
-  redis:
+  cathapi-redis:
     restart: always
     build:
        context: ./redis/
-  celery:
+    networks:
+      default:
+        aliases:
+          - cathapi-redis
+  cathapi-celery:
     restart: always
     build:
       context: ../
       dockerfile: ./Docker/cathapi/Dockerfile
     depends_on:
-      - redis
+      - cathapi-redis
     environment:
-      - CATHAPI_DEBUG=1
+      - CATHAPI_DEBUG=CONTAINER
     command: celery -A cathapi worker
     #django
