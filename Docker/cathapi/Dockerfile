@@ -11,7 +11,6 @@ FROM python:3.7.3-stretch
 
 # Get API code inside the image
 ENV SRC_DIR="/cathapi"
-RUN echo "FOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
 COPY cathapi $SRC_DIR
 
 # Install Python dependencies
@@ -25,3 +24,5 @@ RUN apt-get update && \
 RUN /bin/date | /usr/bin/md5sum > secret_key.txt
 # Run the tests
 #RUN /usr/local/bin/pytest
+
+COPY Docker/cathapi/entrypoint.sh $SRC_DIR

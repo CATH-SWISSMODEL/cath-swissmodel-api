@@ -20,6 +20,20 @@ services:
       default:
         aliases:
           - cathapi-redis
+
+  cathapi-django:
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./Docker/cathapi/Dockerfile
+    depends_on:
+      - cathapi-redis
+    environment:
+      - CATHAPI_DEBUG=CONTAINER
+    command: /cathapi/entrypoint.sh python3 manage.py runserver
+    ports:
+      - "8000:8000"
+
   cathapi-celery:
     restart: always
     build:
@@ -30,4 +44,3 @@ services:
     environment:
       - CATHAPI_DEBUG=CONTAINER
     command: celery -A cathapi worker
-    #django
