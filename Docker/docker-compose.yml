@@ -30,7 +30,7 @@ services:
       - cathapi-redis
     environment:
       - CATHAPI_DEBUG=CONTAINER
-    command: /cathapi/entrypoint.sh python3 manage.py runserver
+    command: /cathapi/entrypoint.sh python3 manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
 
