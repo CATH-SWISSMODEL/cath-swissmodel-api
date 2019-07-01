@@ -19,5 +19,9 @@ class AuthenticationError(ApiClientError):
     pass
 
 
+class InvalidTokenError(AuthenticationError):
+    pass
+
+
 class NoResultsError(Exception):
     pass

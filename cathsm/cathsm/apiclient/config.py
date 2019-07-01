@@ -15,6 +15,7 @@ CONFIG_DIR = os.path.join(XDG_CONFIG_HOME, 'cath-swissmodel-api')
 os.makedirs(CONFIG_DIR, exist_ok=True)
 DEFAULT_CONFIG_FILE = os.path.join(CONFIG_DIR, "config.ini")
 
+
 class ApiConfig(object):
     """
     Defines API configuration file (saves API token)
@@ -29,7 +30,7 @@ class ApiConfig(object):
 
         if os.path.isfile(filename):
             self._config.read(filename)
-            LOG.debug("Loaded config from {}".format(filename))
+            LOG.info("Loaded config from {}".format(filename))
 
         if self.section not in self._config:
             self._config[self.section] = {}
@@ -43,13 +44,15 @@ class ApiConfig(object):
         self.write()
 
     def __contains__(self, key):
-        section = self._config[self.section] if self.section in self._config else {}
+        section = self._config[self.section] if self.section in self._config else {
+        }
         return key in section
 
     def __getitem__(self, key):
         key = str(key)
         section = self._config[self.section]
-        LOG.debug("__getitem__: {}, {} (type:{})".format(self.section, key, type(key)))
+        LOG.debug("__getitem__: {}, {} (type:{})".format(
+            self.section, key, type(key)))
         return section[key]
 
     def __setitem__(self, key, value):
@@ -68,4 +71,3 @@ class ApiConfig(object):
     def as_dict(self):
         d = dict(self._config[self.section])
         return d
-

@@ -4,6 +4,7 @@ Clients that provide interaction with CATH / SWISS-MODEL API.
 
 # core
 import logging
+import getpass
 import sys
 import time
 
@@ -62,9 +63,13 @@ class ApiClientManagerBase(object):
                 pass
             elif 'api_token' in config:
                 self.api_token = config['api_token']
+            elif self.api_user:
+                LOG.info("Please specify password (user={}): {}".format(
+                    self.api_user, self.api_client.base_url))
+                self.api_password = getpass.getpass()
             else:
                 raise ArgError(
-                    "expected 'api_token' or ('api_user', 'api_password')")
+                    "expected 'api_token' or 'api_user'")
 
         self._config = config
 
