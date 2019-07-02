@@ -9,7 +9,8 @@ version: "3.3"
 # $ docker-compose -f docker-compose.yml up
 #
 
-#volumes:
+volumes:
+  django-sqlite-db:
 
 services:
   cathapi-redis:
@@ -30,6 +31,8 @@ services:
       - cathapi-redis
     environment:
       - CATHAPI_DEBUG=CONTAINER
+    volumes:
+      - django-sqlite-db:/cathapi-data
     command: /cathapi/entrypoint.sh python3 manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
