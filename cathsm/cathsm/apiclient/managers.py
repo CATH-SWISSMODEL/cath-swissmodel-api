@@ -229,9 +229,13 @@ class SMAlignmentManager(ApiClientManagerBase):
     Generates 3D model from alignment data (via SWISS-MODEL API)
     """
 
-    def __init__(self, *, api_client=None, **kwargs):
+    def __init__(self, *, api_client=None, base_url=None, **kwargs):
+        self._submit_data_cls = SubmitSelectTemplate
+        client_args = {}
+        if base_url:
+            client_args['base_url'] = base_url
         if not api_client:
-            api_client = clients.SMAlignmentClient()
+            api_client = clients.SMAlignmentClient(**client_args)
         super().__init__(api_client=api_client, **kwargs)
 
     def run(self):
@@ -276,6 +280,6 @@ class SMAlignmentManager(ApiClientManagerBase):
         self.log.debug("result: %s", truncated_result)
         coords = result_r['coordinates']
 
-        self.log.info("Writing coordinates to %s", self.outfile)
+        self.log.info("Writing coordinates to '%s'", self.outfile)
         with open(self.outfile, 'w') as outfile:
             outfile.write(coords)
