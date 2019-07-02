@@ -43,4 +43,17 @@ done
 python3 manage.py makemigrations
 python3 manage.py migrate
 
+# create root account for Django admin page
+>&2 echo "Create superuser for the database"
+python3 manage.py shell << END 
+from django.contrib.auth.models import User
+try:
+    User.objects.create_superuser('admin', 'ad@m.in', 'admin')
+except Exception as dexc:
+    if str(dexc) == 'UNIQUE constraint failed: auth_user.username':
+        pass
+except:
+    raise
+END
+
 exec "$@"
