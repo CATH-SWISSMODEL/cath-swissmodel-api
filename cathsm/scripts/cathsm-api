@@ -73,6 +73,9 @@ if __name__ == '__main__':
 
     try:
         pipeline.run()
+    except apiclient.errors.AuthenticationError as err:
+        LOG.info("Invalid API username/password")
+        exit(1)
     except apiclient.errors.InvalidTokenError as err:
         LOG.info("Invalid API token: {}".format(str(err)))
-        exit(1)
+        exit(2)
