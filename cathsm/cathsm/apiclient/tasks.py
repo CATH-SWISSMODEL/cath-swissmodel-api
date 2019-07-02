@@ -131,6 +131,8 @@ class CathSMSequenceTask:
 
         for hit_count, hit in enumerate(hits, 1):
 
+            log_hr(log)
+
             log.info("SEQUENCE %s, HIT %s [%s]: FunFam '%s': %s",
                      seq_count, hit_count, hit['query_range'], hit['ff_id'], hit['ff_name'])
 
@@ -145,8 +147,8 @@ class CathSMSequenceTask:
             log_br(log)
 
             if not alns:
-                log.warning(
-                    'Found no valid template alignments from hit %s (no CATH domains?). Skipping.', hit['ff_id'])
+                log.warning("Found no valid template alignments from hit '%s'. This is probably due " + \
+                    "to a lack of non-discontinuous CATH domains in the matching FunFam (skipping modelling step).", hit['ff_id'])
                 continue
 
             log_prefix = 'HIT{}'.format(hit_count)
