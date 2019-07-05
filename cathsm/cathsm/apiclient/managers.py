@@ -4,6 +4,7 @@ Clients that provide interaction with CATH / SWISS-MODEL API.
 
 # core
 import logging
+import getpass
 import sys
 import time
 
@@ -62,9 +63,13 @@ class ApiClientManagerBase(object):
                 pass
             elif 'api_token' in config:
                 self.api_token = config['api_token']
+            elif self.api_user:
+                LOG.info("Please specify password (user={}): {}".format(
+                    self.api_user, self.api_client.base_url))
+                self.api_password = getpass.getpass()
             else:
                 raise ArgError(
-                    "expected 'api_token' or ('api_user', 'api_password')")
+                    "expected 'api_token' or 'api_user'")
 
         self._config = config
 
@@ -224,9 +229,13 @@ class SMAlignmentManager(ApiClientManagerBase):
     Generates 3D model from alignment data (via SWISS-MODEL API)
     """
 
-    def __init__(self, *, api_client=None, **kwargs):
+    def __init__(self, *, api_client=None, base_url=None, **kwargs):
+        self._submit_data_cls = SubmitSelectTemplate
+        client_args = {}
+        if base_url:
+            client_args['base_url'] = base_url
         if not api_client:
-            api_client = clients.SMAlignmentClient()
+            api_client = clients.SMAlignmentClient(**client_args)
         super().__init__(api_client=api_client, **kwargs)
 
     def run(self):
@@ -271,6 +280,6 @@ class SMAlignmentManager(ApiClientManagerBase):
         self.log.debug("result: %s", truncated_result)
         coords = result_r['coordinates']
 
-        self.log.info("Writing coordinates to %s", self.outfile)
+        self.log.info("Writing coordinates to '%s'", self.outfile)
         with open(self.outfile, 'w') as outfile:
             outfile.write(coords)

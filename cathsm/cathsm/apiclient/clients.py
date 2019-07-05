@@ -5,6 +5,7 @@ Clients that provide interaction with CATH / SWISS-MODEL API.
 # core
 import logging
 import json
+import re
 
 # non-core
 import requests
@@ -15,14 +16,14 @@ from cathpy import funfhmmer
 import cathpy.models
 
 # local
-from cathsm.apiclient.errors import AuthenticationError, NoResultsError
+from cathsm.apiclient.errors import InvalidTokenError, AuthenticationError, NoResultsError
 
 DEFAULT_SM_BASE_URL = 'https://beta.swissmodel.expasy.org'
 
 # currently you have to start this yourself...
 # cd ../cathapi && python3 manage.py runserver
 #DEFAULT_CATH_BASE_URL = 'http://localhost:8000'
-DEFAULT_CATH_BASE_URL = 'http://api01.cathdb.info'
+DEFAULT_CATH_BASE_URL = 'https://api01.cathdb.info'
 
 
 LOG = logging.getLogger(__name__)
@@ -103,6 +104,13 @@ class ApiClientBase():
         return res
 
     def check_response(self, *, response, status_success=200):
+
+        if response.status_code == 401:
+            if re.search(r'invalid token', response.text, re.IGNORECASE):
+                raise InvalidTokenError('failed to authenticate client: submitted API token is invalid (try deleting and refreshing)')
+            else:
+                raise AuthenticationError('failed to authenticate client: {}'.format(response.text))
+
         if response.status_code != status_success:
             LOG.error("Error: failed to submit data: status=%s (expected %s), msg=%s",
                       response.status_code, status_success, response.text)
