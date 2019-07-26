@@ -126,3 +126,7 @@ cathapi/secret_key.txt
 
 # javascript
 node_modules/
+
+# Emacs backup files
+\#*#
+\.\#*
