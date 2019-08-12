@@ -4,7 +4,7 @@
 
 This repository is here to help development relating to the CATH / SWISS-MODEL API (2018 ELIXIR Implementation Study).
 
-## Overview
+## Overview
 
 The project provides a pipeline that models 3D structures from protein sequence. This effectively glues together APIs from two different bioinformatics resources (CATH and SWISS-MODEL): 
 

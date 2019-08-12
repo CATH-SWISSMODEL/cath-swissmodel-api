@@ -10,8 +10,8 @@ FROM python:3.7.3-slim-stretch
 #
 
 # Get API code inside the image
-RUN /bin/mkdir /cathapi
 ENV SRC_DIR="/cathapi"
+RUN /bin/mkdir $SRC_DIR
 COPY ./ $SRC_DIR
 
 WORKDIR $SRC_DIR
@@ -19,8 +19,11 @@ WORKDIR $SRC_DIR
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    # +134MB by ncbi-blast+
     ncbi-blast+  \
+    # +9MB by mafft
     mafft        \
+    # +81MB gcc
     gcc          \
     libc-dev     \
     libpq-dev && \
@@ -40,6 +43,19 @@ RUN /bin/date | /usr/bin/md5sum > secret_key.txt
 #RUN /usr/local/bin/pytest
 
 COPY Docker/cathapi/entrypoint.sh $SRC_DIR
+
+# Create dedicated user
+RUN adduser --system --ingroup users cathapi && \
+    # Create volume mountpoint for the (still sqlite) database
+    /bin/mkdir /cathapi-data && \
+    chown -R cathapi:users /cathapi-data && \
+    # Create directory for static files
+    /bin/mkdir /static && \
+    chown -R cathapi:users /static && \
+    # grant dedicated user access to code
+    chown -R cathapi:users $SRC_DIR
+
+USER cathapi:users
 
 # The following lets Python write to STDOUT without buffering and prevents
 # Python byte-compilation. We do not want *.pyc files generated at run-time,

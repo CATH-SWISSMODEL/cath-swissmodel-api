@@ -2,15 +2,17 @@ version: "3.3"
 
 # Build all images:
 #
-# $ docker-compose -f docker-compose.yml build
+# $ docker-compose -f Docker/docker-compose.yml build
 #
 # Start the development instance:
 #
-# $ docker-compose -f docker-compose.yml up
+# $ docker-compose -f Docker/docker-compose.yml up
 #
 
 volumes:
   django-sqlite-db:
+  www-static:
+  www-logs:
 
 services:
   cathapi-redis:
@@ -29,13 +31,30 @@ services:
       dockerfile: Docker/cathapi/Dockerfile
     depends_on:
       - cathapi-redis
+      - postgres
     environment:
       - CATHAPI_DEBUG=CONTAINER
     volumes:
       - django-sqlite-db:/cathapi-data
-    command: /cathapi/entrypoint.sh python3 manage.py runserver 0.0.0.0:8000
+      - www-static:/static
+    command: /cathapi/entrypoint.sh gunicorn cathapi.wsgi -b 0.0.0.0:8080
+
+  postgres:
+    restart: always
+    build:
+      context: ./postgres/
+
+  nginx:
+    restart: always
+    build: 
+      context: ./nginx/
+    depends_on:
+      - cathapi-django
+    volumes:
+      - www-static:/static
+      - www-logs:/var/log/nginx
     ports:
-      - "8000:8000"
+      - "0.0.0.0:80:8000"
 
   cathapi-celery:
     restart: always
