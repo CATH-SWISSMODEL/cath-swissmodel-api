@@ -8,6 +8,8 @@ FROM python:3.7.3-slim-stretch
 # where
 # - "-t cathapi" just defines a name/ tag
 #
+# Be aware: some (secret) environment variables are passed by an .env file
+#           this is copied here from cathapi/Docker/cathapi/.env .
 
 # Get API code inside the image
 ENV SRC_DIR="/cathapi"
@@ -26,6 +28,7 @@ RUN apt-get update && \
     # +81MB gcc
     gcc          \
     libc-dev     \
+    libpq5       \
     libpq-dev && \
     /bin/rm -rf /var/lib/apt/lists/* && \
 # Install Python dependencies
@@ -43,6 +46,8 @@ RUN /bin/date | /usr/bin/md5sum > secret_key.txt
 #RUN /usr/local/bin/pytest
 
 COPY Docker/cathapi/entrypoint.sh $SRC_DIR
+
+COPY Docker/cathapi/.env $SRC_DIR
 
 # Create dedicated user
 RUN adduser --system --ingroup users cathapi && \
