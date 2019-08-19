@@ -1,21 +1,6 @@
 
-## Install
+The contents of this directory have been moved to a standalone repository.
 
-```
-python3 -m venv venv
-. venv/bin/activate
-pip install -e .
-```
+https://github.com/CATH-SWISSMODEL/cathsm-server
 
-## Test
-
-```
-pytest
-```
-
-## Run server
-
-```
-python3 manage.py runserver
-```
 
