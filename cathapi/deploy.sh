@@ -7,15 +7,10 @@
 # die on any error
 set -e
 
-CATHPY_LATEST_TAG="v0.0.1"
 CATHAPI_LATEST_TAG="v0.0.1"
-
-CATHPY_SOURCE="https://github.com/UCL/cathpy.git"
-CATHPY_TAG=${CATHPY_TAG:-$CATHPY_LATEST_TAG}
-
 CATHAPI_SOURCE="https://github.com/CATH-SWISSMODEL/cath-swissmodel-api.git"
 
-HTTP_BASE=/etc/httpd
+NGINX_BASE=/etc/nginx
 VHOSTS_BASE=/var/www/vhosts
 DEBUG_FLAG=0
 
@@ -48,7 +43,6 @@ esac
 BASEDIR=$VHOSTS_BASE/cathapi-${RELEASE}
 USER=$(whoami)
 
-CATHPY_DIR=$BASEDIR/cathpy
 CATHAPI_DIR=$BASEDIR/cath-swissmodel-api
 
 echo
@@ -58,9 +52,6 @@ echo "#####################################################"
 echo "# ACTION         $ACTION"
 echo "# RELEASE        $RELEASE"
 echo "# BASEDIR        $BASEDIR"
-echo "# CATHPY_SOURCE  $CATHPY_SOURCE"
-echo "# CATHPY_TAG     $CATHPY_TAG"
-echo "# CATHPY_DIR     $CATHPY_DIR"
 echo "# CATHAPI_SOURCE $CATHAPI_SOURCE"
 echo "# CATHAPI_BRANCH $CATHAPI_BRANCH"
 echo "# CATHAPI_DIR    $CATHAPI_DIR"
@@ -76,29 +67,11 @@ function update_code {
         (set -x; git clone $CATHAPI_BRANCH $CATHAPI_SOURCE $CATHAPI_DIR)
     fi
     echo "  ... done"
-    echo 
-
-    if [ -d "$CATHPY_DIR" ]; then
-        echo "Refreshing existing CATHPY code [tag: $CATHPY_TAG] from $CATHPY_SOURCE ..."
-        (set -x; cd $CATHPY_DIR; git pull origin $CATHPY_TAG; git checkout $CATHPY_TAG)
-    else
-        echo "Clone new CATHPY code from $CATHPY_SOURCE ..."
-        (set -x; git clone --branch=$CATHPY_TAG $CATHPY_SOURCE $CATHPY_DIR)
-    fi
-    echo "  ... done"
-    echo 
-}
-
-function update_web {
-    echo "Updating web config (requires sudo) ... "
-    (set -x; sudo rsync -av $CATHAPI_DIR/deploy/httpd/ $HTTP_BASE/)
-    echo "  ... done"
     echo
 }
 
 function update {
     update_code
-    update_web
 
     HTTP_SITECONF_FILENAME=cathapi-${RELEASE}.conf
     HTTP_SITECONF_SRC=$HTTP_BASE/sites-available/$HTTP_SITECONF_FILENAME
